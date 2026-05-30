@@ -1,25 +1,26 @@
-import { SlashCommandBuilder, PermissionFlagsBits, PermissionsBitField, ChannelType, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
 import { createEmbed, errorEmbed, successEmbed, infoEmbed, warningEmbed } from '../../utils/embeds.js';
 import { logModerationAction } from '../../utils/moderation.js';
 import { logger } from '../../utils/logger.js';
 import { WarningService } from '../../services/warningService.js';
 import { handleInteractionError } from '../../utils/errorHandler.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+
 export default {
     data: new SlashCommandBuilder()
         .setName("warn")
-        .setDescription("Warn a user")
+        .setDescription("Verwarnt einen Nutzer")
         .addUserOption((o) =>
             o
                 .setName("target")
                 .setRequired(true)
-                .setDescription("User to warn"),
+                .setDescription("Der zu verwarnende Nutzer"),
         )
         .addStringOption((o) =>
             o
                 .setName("reason")
                 .setRequired(true)
-                .setDescription("Reason for the warning"),
+                .setDescription("Grund für die Verwarnung"),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
     category: "moderation",
@@ -36,67 +37,63 @@ export default {
         }
 
         try {
-                if (!interaction.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
-                    throw new Error("You need the `Moderate Members` permission to issue warnings.");
-                }
+            if (!interaction.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
+                throw new Error("Du benötigst die Berechtigung `Mitglieder moderieren`, um Verwarnungen auszusprechen.");
+            }
 
-                const target = interaction.options.getUser("target");
-                const member = interaction.options.getMember("target");
-                const reason = interaction.options.getString("reason");
-                const moderator = interaction.user;
-                const guildId = interaction.guildId;
+            const target = interaction.options.getUser("target");
+            const member = interaction.options.getMember("target");
+            const reason = interaction.options.getString("reason");
+            const moderator = interaction.user;
+            const guildId = interaction.guildId;
 
-                if (!member) {
-                    throw new Error("The target user is not currently in this server.");
-                }
+            if (!member) {
+                throw new Error("Der Zielnutzer befindet sich derzeit nicht auf diesem Server.");
+            }
 
-                
-                const result = await WarningService.addWarning({
-                    guildId,
-                    userId: target.id,
-                    moderatorId: moderator.id,
+            const result = await WarningService.addWarning({
+                guildId,
+                userId: target.id,
+                moderatorId: moderator.id,
+                reason,
+                timestamp: Date.now()
+            });
+
+            if (!result.success) {
+                throw new Error("Fehler beim Speichern der Verwarnung in der Datenbank");
+            }
+
+            const totalWarns = result.totalCount;
+
+            await logModerationAction({
+                client,
+                guild: interaction.guild,
+                event: {
+                    action: "User Warned",
+                    target: `${target.tag} (${target.id})`,
+                    executor: `${moderator.tag} (${moderator.id})`,
                     reason,
-                    timestamp: Date.now()
-                });
-
-                if (!result.success) {
-                    throw new Error("Failed to store warning in database");
-                }
-
-                const totalWarns = result.totalCount;
-
-                await logModerationAction({
-                    client,
-                    guild: interaction.guild,
-                    event: {
-                        action: "User Warned",
-                        target: `${target.tag} (${target.id})`,
-                        executor: `${moderator.tag} (${moderator.id})`,
-                        reason,
-                        metadata: {
-                            userId: target.id,
-                            moderatorId: moderator.id,
-                            totalWarns,
-                            warningNumber: totalWarns,
-                            warningId: result.id
-                        }
+                    metadata: {
+                        userId: target.id,
+                        moderatorId: moderator.id,
+                        totalWarns,
+                        warningNumber: totalWarns,
+                        warningId: result.id
                     }
-                });
+                }
+            });
 
-                await InteractionHelper.safeEditReply(interaction, {
-                    embeds: [
-                        successEmbed(
-                            `⚠️ **Warned** ${target.tag}`,
-                            `**Reason:** ${reason}\n**Total Warns:** ${totalWarns}`,
-                        ),
-                    ],
-                });
+            await InteractionHelper.safeEditReply(interaction, {
+                embeds: [
+                    successEmbed(
+                        `⚠️ **Verwarnung erteilt an** ${target.tag}`,
+                        `**Grund:** ${reason}\n**Verwarnungen insgesamt:** ${totalWarns}`,
+                    ),
+                ],
+            });
         } catch (error) {
             logger.error('Warn command error:', error);
             await handleInteractionError(interaction, error, { subtype: 'warn_failed' });
         }
     }
 };
-
-
-
