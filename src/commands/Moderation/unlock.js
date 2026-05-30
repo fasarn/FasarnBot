@@ -1,17 +1,15 @@
-import { SlashCommandBuilder, PermissionFlagsBits, PermissionsBitField, ChannelType } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
 import { createEmbed, errorEmbed, successEmbed, infoEmbed, warningEmbed } from '../../utils/embeds.js';
 import { logEvent } from '../../utils/moderation.js';
 import { logger } from '../../utils/logger.js';
 import { getColor } from '../../config/bot.js';
-
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+
 export default {
     data: new SlashCommandBuilder()
         .setName("unlock")
-        .setDescription(
-            "Unlocks the current channel (allows @everyone to send messages again).",
-        )
-.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
+        .setDescription("Entsperrt den aktuellen Kanal (erlaubt es @everyone wieder, Nachrichten zu senden).")
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
     category: "moderation",
 
     async execute(interaction, config, client) {
@@ -25,19 +23,16 @@ export default {
             return;
         }
 
-        if (
-            !interaction.member.permissions.has(
-                PermissionFlagsBits.ManageChannels,
-            )
-        )
+        if (!interaction.member.permissions.has(PermissionFlagsBits.ManageChannels)) {
             return await InteractionHelper.safeEditReply(interaction, {
                 embeds: [
                     errorEmbed(
-                        "Permission Denied",
-                        "You need the `Manage Channels` permission to unlock channels.",
+                        "Berechtigung verweigert",
+                        "Du benötigst die Berechtigung `Kanäle verwalten`, um Kanäle zu entsperren.",
                     ),
                 ],
             });
+        }
 
         const channel = interaction.channel;
         const everyoneRole = interaction.guild.roles.everyone;
@@ -45,16 +40,14 @@ export default {
         try {
             const currentPermissions = channel.permissionsFor(everyoneRole);
             if (
-                currentPermissions.has(PermissionFlagsBits.SendMessages) ===
-                    true ||
-                currentPermissions.has(PermissionFlagsBits.SendMessages) ===
-                    null
+                currentPermissions.has(PermissionFlagsBits.SendMessages) === true ||
+                currentPermissions.has(PermissionFlagsBits.SendMessages) === null
             ) {
                 return await InteractionHelper.safeEditReply(interaction, {
                     embeds: [
                         errorEmbed(
-                            "Channel Already Unlocked",
-                            `${channel} is not explicitly locked (everyone can already send messages).`,
+                            "Kanal bereits entsperrt",
+                            `${channel} ist nicht explizit gesperrt (jeder kann hier bereits Nachrichten senden).`,
                         ),
                     ],
                 });
@@ -65,18 +58,18 @@ export default {
                 { SendMessages: true },
                 {
                     type: 0,
-                    reason: `Channel unlocked by ${interaction.user.tag}`,
-},
+                    reason: `Kanal entsperrt von ${interaction.user.tag}`,
+                },
             );
 
             const unlockEmbed = createEmbed(
-                "🔓 Channel Unlocked (Action Log)",
-                `${channel} has been unlocked by ${interaction.user}.`,
+                "🔓 Kanal entsperrt (Aktionsprotokoll)",
+                `${channel} wurde von ${interaction.user} entsperrt.`,
             )
-.setColor(getColor('success'))
+                .setColor(getColor('success'))
                 .addFields(
                     {
-                        name: "Channel",
+                        name: "Kanal",
                         value: channel.toString(),
                         inline: true,
                     },
@@ -104,8 +97,8 @@ export default {
             await InteractionHelper.safeEditReply(interaction, {
                 embeds: [
                     successEmbed(
-                        `🔓 **Channel Unlocked**`,
-                        `${channel} is now unlocked. You may speak now.`,
+                        `🔓 **Kanal entsperrt**`,
+                        `${channel} ist nun wieder entsperrt. Textnachrichten können wieder gesendet werden.`,
                     ),
                 ],
             });
@@ -114,13 +107,10 @@ export default {
             await InteractionHelper.safeEditReply(interaction, {
                 embeds: [
                     errorEmbed(
-                        "An unexpected error occurred while trying to unlock the channel. Check my permissions (I need 'Manage Channels').",
+                        "Ein unerwarteter Fehler ist beim Entsperren des Kanals aufgetreten. Bitte überprüfe meine Berechtigungen (ich benötige `Kanäle verwalten`).",
                     ),
                 ],
             });
         }
     }
 };
-
-
-
