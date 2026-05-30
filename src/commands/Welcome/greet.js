@@ -8,44 +8,86 @@ import greetDashboard from './modules/greet_dashboard.js';
 export default {
     data: new SlashCommandBuilder()
         .setName('greet')
-        .setDescription('Manage welcome & goodbye settings')
+        .setDescription('Verwalte Willkommens- & Verabschiedungseinstellungen')
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .addSubcommand(subcommand =>
             subcommand
                 .setName('dashboard')
-                .setDescription('Open the welcome & goodbye configuration dashboard'),
+                .setDescription('Öffne das Konfigurationsdashboard für Willkommen & Verabschiedung'),
         ),
 
     async execute(interaction, config, client) {
         try {
+
             if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
-                return await InteractionHelper.safeReply(interaction, {
-                    embeds: [
-                        errorEmbed(
-                            'Missing Permissions',
-                            'You need the **Manage Server** permission to use `/greet`.',
-                        ),
-                    ],
-                    flags: MessageFlags.Ephemeral,
-                });
+
+                return await InteractionHelper.safeReply(
+                    interaction,
+                    {
+                        embeds: [
+                            errorEmbed(
+                                'Fehlende Berechtigungen',
+                                'Du benötigst die Berechtigung **Server verwalten**, um `/greet` zu verwenden.',
+                            ),
+                        ],
+
+                        flags:
+                            MessageFlags.Ephemeral,
+                    }
+                );
             }
 
-            const subcommand = interaction.options.getSubcommand();
+            const subcommand =
+                interaction.options.getSubcommand();
 
             switch (subcommand) {
+
                 case 'dashboard':
-                    return await greetDashboard.execute(interaction, config, client);
+
+                    return await greetDashboard.execute(
+                        interaction,
+                        config,
+                        client
+                    );
+
                 default:
-                    logger.warn(`Unknown /greet subcommand: ${subcommand}`);
+
+                    logger.warn(
+                        `Unknown /greet subcommand: ${subcommand}`
+                    );
             }
+
         } catch (error) {
-            if (error instanceof TitanBotError) {
-                return await InteractionHelper.safeReply(interaction, {
-                    embeds: [errorEmbed('Configuration Error', error.userMessage || 'Something went wrong.')],
-                    flags: MessageFlags.Ephemeral,
-                });
+
+            if (
+                error instanceof TitanBotError
+            ) {
+
+                return await InteractionHelper.safeReply(
+                    interaction,
+                    {
+                        embeds: [
+                            errorEmbed(
+                                'Konfigurationsfehler',
+                                error.userMessage ||
+                                'Etwas ist schiefgelaufen.'
+                            ),
+                        ],
+
+                        flags:
+                            MessageFlags.Ephemeral,
+                    }
+                );
             }
-            await handleInteractionError(interaction, error, { command: 'greet' });
+
+            await handleInteractionError(
+                interaction,
+                error,
+                {
+                    command:
+                        'greet'
+                }
+            );
         }
     },
 };
