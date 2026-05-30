@@ -3,27 +3,27 @@ import { createEmbed, errorEmbed, successEmbed, infoEmbed, warningEmbed } from '
 import { logModerationAction } from '../../utils/moderation.js';
 import { logger } from '../../utils/logger.js';
 import { checkRateLimit } from '../../utils/rateLimiter.js';
-
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+
 export default {
     data: new SlashCommandBuilder()
         .setName("massban")
-        .setDescription("Ban multiple users from the server at once")
+        .setDescription("Sperrt mehrere Nutzer gleichzeitig vom Server")
         .addStringOption(option =>
             option
                 .setName("users")
-                .setDescription("User IDs or mentions to ban (separated by spaces or commas)")
+                .setDescription("Nutzer-IDs oder Erwähnungen (getrennt durch Leerzeichen oder Kommas)")
                 .setRequired(true)
         )
         .addStringOption(option =>
             option.setName("reason")
-                .setDescription("Reason for the mass ban")
+                .setDescription("Grund für den Massen-Bann")
                 .setRequired(false)
         )
         .addIntegerOption(option =>
             option
                 .setName("delete_days")
-                .setDescription("Number of days of messages to delete (0-7)")
+                .setDescription("Anzahl der Tage, deren Nachrichten gelöscht werden sollen (0-7)")
                 .setMinValue(0)
                 .setMaxValue(7)
                 .setRequired(false)
@@ -46,15 +46,15 @@ export default {
             return await InteractionHelper.safeEditReply(interaction, {
                 embeds: [
                     errorEmbed(
-                        "Permission Denied",
-                        "You do not have permission to ban members."
+                        "Berechtigung verweigert",
+                        "Du hast keine Berechtigung, um Mitglieder zu sperren."
                     ),
                 ],
             });
         }
 
         const usersInput = interaction.options.getString("users");
-        const reason = interaction.options.getString("reason") || "Mass ban - No reason provided";
+        const reason = interaction.options.getString("reason") || "Massen-Bann - Kein Grund angegeben";
         const deleteDays = interaction.options.getInteger("delete_days") || 0;
 
         try {
@@ -65,8 +65,8 @@ export default {
                 return await InteractionHelper.safeEditReply(interaction, {
                     embeds: [
                         warningEmbed(
-                            "You're performing mass bans too fast. Please wait a minute before trying again.",
-                            "⏳ Rate Limited"
+                            "Du führst Massen-Banns zu schnell aus. Bitte warte eine Minute, bevor du es erneut versuchst.",
+                            "⏳ Ratenbegrenzung (Rate Limit)"
                         ),
                     ],
                     flags: MessageFlags.Ephemeral,
@@ -74,17 +74,17 @@ export default {
             }
 
             const userIds = usersInput
-.replace(/<@!?(\d+)>/g, '$1')
-.split(/[\s,]+/)
-.filter(id => id && /^\d+$/.test(id))
-.slice(0, 20);
+                .replace(/<@!?(\d+)>/g, '$1')
+                .split(/[\s,]+/)
+                .filter(id => id && /^\d+$/.test(id))
+                .slice(0, 20);
 
             if (userIds.length === 0) {
                 return await InteractionHelper.safeEditReply(interaction, {
                     embeds: [
                         errorEmbed(
-                            "Invalid Users",
-                            "Please provide valid user IDs or mentions. Maximum 20 users at once."
+                            "Ungültige Nutzer",
+                            "Bitte gib gültige Nutzer-IDs oder Erwähnungen an. Maximal 20 Nutzer gleichzeitig."
                         ),
                     ],
                 });
@@ -94,8 +94,8 @@ export default {
                 return await InteractionHelper.safeEditReply(interaction, {
                     embeds: [
                         errorEmbed(
-                            "Cannot Ban Self",
-                            "You cannot include yourself in a mass ban."
+                            "Selbstbann unmöglich",
+                            "Du kannst dich nicht selbst in einen Massen-Bann einschließen."
                         ),
                     ],
                 });
@@ -105,8 +105,8 @@ export default {
                 return await InteractionHelper.safeEditReply(interaction, {
                     embeds: [
                         errorEmbed(
-                            "Cannot Ban Bot",
-                            "You cannot include the bot in a mass ban."
+                            "Bot-Bann unmöglich",
+                            "Du kannst den Bot nicht in einen Massen-Bann einschließen."
                         ),
                     ],
                 });
@@ -123,7 +123,7 @@ export default {
                     const user = await client.users.fetch(userId).catch(() => null);
                     
                     if (!user) {
-                        results.failed.push({ userId, reason: "User not found" });
+                        results.failed.push({ userId, reason: "Nutzer nicht gefunden" });
                         continue;
                     }
 
@@ -135,7 +135,7 @@ export default {
                             results.skipped.push({ 
                                 user: user.tag, 
                                 userId, 
-                                reason: "Cannot ban user with equal or higher role" 
+                                reason: "Gleichwertige oder höhere Rolle" 
                             });
                             continue;
                         }
@@ -172,15 +172,15 @@ export default {
                     logger.error(`Failed to ban user ${userId}:`, error);
                     results.failed.push({ 
                         userId, 
-                        reason: error.message || "Unknown error" 
+                        reason: error.message || "Unbekannter Fehler" 
                     });
                 }
             }
 
-            let description = `**Mass Ban Results:**\n\n`;
+            let description = `**Ergebnisse des Massen-Banns:**\n\n`;
             
             if (results.successful.length > 0) {
-                description += `✅ **Successfully Banned (${results.successful.length}):**\n`;
+                description += `✅ **Erfolgreich gesperrt (${results.successful.length}):**\n`;
                 results.successful.forEach(result => {
                     description += `• ${result.user} (${result.userId})\n`;
                 });
@@ -188,7 +188,7 @@ export default {
             }
 
             if (results.skipped.length > 0) {
-                description += `⚠️ **Skipped (${results.skipped.length}):**\n`;
+                description += `⚠️ **Übersprungen (${results.skipped.length}):**\n`;
                 results.skipped.forEach(result => {
                     description += `• ${result.user} - ${result.reason}\n`;
                 });
@@ -196,7 +196,7 @@ export default {
             }
 
             if (results.failed.length > 0) {
-                description += `❌ **Failed (${results.failed.length}):**\n`;
+                description += `❌ **Fehlgeschlagen (${results.failed.length}):**\n`;
                 results.failed.forEach(result => {
                     description += `• ${result.userId} - ${result.reason}\n`;
                 });
@@ -207,7 +207,7 @@ export default {
             return await InteractionHelper.safeEditReply(interaction, {
                 embeds: [
                     embed(
-                        `🔨 Mass Ban Completed`,
+                        `🔨 Massen-Bann abgeschlossen`,
                         description
                     )
                 ]
@@ -218,14 +218,11 @@ export default {
             return await InteractionHelper.safeEditReply(interaction, {
                 embeds: [
                     errorEmbed(
-                        "System Error",
-                        "An error occurred while processing the mass ban. Please try again later."
+                        "Systemfehler",
+                        "Beim Verarbeiten des Massen-Banns ist ein Fehler aufgetreten. Bitte versuche es später noch einmal."
                     ),
                 ],
             });
         }
     }
 };
-
-
-
