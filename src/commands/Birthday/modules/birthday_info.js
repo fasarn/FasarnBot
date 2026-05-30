@@ -20,20 +20,20 @@ export default {
             if (!birthdayData) {
                 return await InteractionHelper.safeEditReply(interaction, {
                     embeds: [createEmbed({
-                        title: '❌ No Birthday Found',
+                        title: '❌ Kein Geburtstag gefunden',
                         description: targetUser.id === interaction.user.id 
-                            ? "You haven't set your birthday yet. Use `/birthday set` to add it!"
-                            : `${targetUser.username} hasn't set their birthday yet.`,
+                            ? "Du hast deinen Geburtstag noch nicht eingetragen. Verwende `/birthday set`, um ihn hinzuzufügen!"
+                            : `${targetUser.username} hat noch keinen Geburtstag eingetragen.`,
                         color: 'error'
                     })]
                 });
             }
             
             const embed = createEmbed({
-                title: "🎂 Birthday Information",
-                description: `**Date:** ${birthdayData.monthName} ${birthdayData.day}\n**User:** ${targetUser.toString()}`,
+                title: "🎂 Geburtstags-Informationen",
+                description: `**Datum:** ${birthdayData.day}. ${birthdayData.monthName}\n**Nutzer:** ${targetUser.toString()}`,
                 color: 'info',
-                footer: targetUser.id === interaction.user.id ? "Your Birthday" : `${targetUser.username}'s Birthday`
+                footer: targetUser.id === interaction.user.id ? "Dein Geburtstag" : `Geburtstag von ${targetUser.username}`
             });
             
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
@@ -59,6 +59,3 @@ export default {
         }
     }
 };
-
-
-
