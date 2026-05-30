@@ -15,12 +15,12 @@ export default {
     data: new SlashCommandBuilder()
         .setName("gend")
         .setDescription(
-            "Ends an active giveaway immediately and picks the winner(s).",
+            "Beendet ein aktives Gewinnspiel sofort und ermittelt die Gewinner.",
         )
         .addStringOption((option) =>
             option
                 .setName("messageid")
-                .setDescription("The message ID of the giveaway to end.")
+                .setDescription("Die Nachrichten-ID des zu beendenden Gewinnspiels.")
                 .setRequired(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
@@ -32,7 +32,7 @@ export default {
                 throw new TitanBotError(
                     'Giveaway command used outside guild',
                     ErrorTypes.VALIDATION,
-                    'This command can only be used in a server.',
+                    'Dieser Befehl kann nur innerhalb eines Servers verwendet werden.',
                     { userId: interaction.user.id }
                 );
             }
@@ -42,7 +42,7 @@ export default {
                 throw new TitanBotError(
                     'User lacks ManageGuild permission',
                     ErrorTypes.PERMISSION,
-                    "You need the 'Manage Server' permission to end a giveaway.",
+                    "Du benötigst die Berechtigung 'Server verwalten', um ein Gewinnspiel zu beenden.",
                     { userId: interaction.user.id, guildId: interaction.guildId }
                 );
             }
@@ -56,7 +56,7 @@ export default {
                 throw new TitanBotError(
                     'Invalid message ID format',
                     ErrorTypes.VALIDATION,
-                    'Please provide a valid message ID.',
+                    'Bitte gib eine gültige Nachrichten-ID an.',
                     { providedId: messageId }
                 );
             }
@@ -68,7 +68,7 @@ export default {
                 throw new TitanBotError(
                     `Giveaway not found: ${messageId}`,
                     ErrorTypes.VALIDATION,
-                    "No giveaway was found with that message ID in the database.",
+                    "Es wurde kein Gewinnspiel mit dieser Nachrichten-ID in der Datenbank gefunden.",
                     { messageId, guildId: interaction.guildId }
                 );
             }
@@ -96,7 +96,7 @@ export default {
                 throw new TitanBotError(
                     `Channel not found: ${updatedGiveaway.channelId}`,
                     ErrorTypes.VALIDATION,
-                    "Could not find the channel where the giveaway was hosted. The giveaway state has been updated.",
+                    "Der Kanal, in dem das Gewinnspiel stattgefunden hat, wurde nicht gefunden. Der Gewinnspiel-Status wurde dennoch aktualisiert.",
                     { channelId: updatedGiveaway.channelId, messageId }
                 );
             }
@@ -112,7 +112,7 @@ export default {
                 throw new TitanBotError(
                     `Message not found: ${messageId}`,
                     ErrorTypes.VALIDATION,
-                    "Could not find the giveaway message. The giveaway state has been updated.",
+                    "Die Gewinnspiel-Nachricht wurde nicht gefunden. Der Gewinnspiel-Status wurde dennoch aktualisiert.",
                     { messageId, channelId: updatedGiveaway.channelId }
                 );
             }
@@ -129,7 +129,7 @@ export default {
             const newRow = createGiveawayButtons(true);
 
             await message.edit({
-                content: "🎉 **GIVEAWAY ENDED** 🎉",
+                content: "🎉 **GEWINNSPIEL BEENDET** 🎉",
                 embeds: [newEmbed],
                 components: [newRow],
             });
@@ -140,7 +140,7 @@ export default {
                     .map((id) => `<@${id}>`)
                     .join(", ");
                 const winnerPingMsg = await channel.send({
-                    content: `🎉 CONGRATULATIONS ${winnerMentions}! You won the **${updatedGiveaway.prize}** giveaway! Please contact the host <@${updatedGiveaway.hostId}> to claim your prize.`,
+                    content: `🎉 HERZLICHEN GLÜCKWUNSCH ${winnerMentions}! Du hast das Gewinnspiel für **${updatedGiveaway.prize}** gewonnen! Bitte melde dich bei dem Organisator <@${updatedGiveaway.hostId}>, um deinen Gewinn einzufordern.`,
                 });
                 updatedGiveaway.winnerPingMessageId = winnerPingMsg.id;
                 await saveGiveaway(interaction.client, interaction.guildId, updatedGiveaway);
@@ -159,17 +159,17 @@ export default {
                             userId: interaction.user.id,
                             fields: [
                                 {
-                                    name: '🎁 Prize',
-                                    value: updatedGiveaway.prize || 'Mystery Prize!',
+                                    name: '🎁 Gewinn',
+                                    value: updatedGiveaway.prize || 'Geheimnisvoller Preis!',
                                     inline: true
                                 },
                                 {
-                                    name: '🏆 Winners',
+                                    name: '🏆 Gewinner',
                                     value: winnerMentions,
                                     inline: false
                                 },
                                 {
-                                    name: '👥 Entries',
+                                    name: '👥 Teilnahmen',
                                     value: endResult.participantCount.toString(),
                                     inline: true
                                 }
@@ -181,7 +181,7 @@ export default {
                 }
             } else {
                 await channel.send({
-                    content: `The giveaway for **${updatedGiveaway.prize}** has ended with no valid entries.`,
+                    content: `Das Gewinnspiel für **${updatedGiveaway.prize}** ist ohne gültige Teilnahmen zu Ende gegangen.`,
                 });
                 logger.info(`Giveaway ended with no winners: ${messageId}`);
             }
@@ -191,8 +191,8 @@ export default {
             return InteractionHelper.safeReply(interaction, {
                 embeds: [
                     successEmbed(
-                        "Giveaway Ended ✅",
-                        `Successfully ended the giveaway for **${updatedGiveaway.prize}** in ${channel}. Selected ${winners.length} winner(s) from ${endResult.participantCount} entries.`,
+                        "Gewinnspiel beendet ✅",
+                        `Das Gewinnspiel für **${updatedGiveaway.prize}** in ${channel} wurde erfolgreich beendet. Es wurden ${winners.length} Gewinner aus insgesamt ${endResult.participantCount} Teilnahmen ausgewählt.`,
                     ),
                 ],
                 flags: MessageFlags.Ephemeral,
@@ -207,6 +207,3 @@ export default {
         }
     },
 };
-
-
-
