@@ -3,30 +3,31 @@ import { createEmbed, errorEmbed, successEmbed } from '../../utils/embeds.js';
 import { getModerationCases } from '../../utils/moderation.js';
 import { logger } from '../../utils/logger.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+
 export default {
     data: new SlashCommandBuilder()
         .setName('cases')
-        .setDescription('View moderation cases and audit logs')
+        .setDescription('Zeigt Moderationsfälle und das Audit-Protokoll an')
         .setDefaultMemberPermissions(PermissionFlagsBits.ViewAuditLog)
         .setDMPermission(false)
         .addStringOption(option =>
             option.setName('filter')
-                .setDescription('Filter cases by type or user')
+                .setDescription('Filtert die Fälle nach Typ')
                 .addChoices(
-                    { name: 'All Cases', value: 'all' },
-                    { name: 'Bans', value: 'Member Banned' },
+                    { name: 'Alle Fälle', value: 'all' },
+                    { name: 'Sperren (Bans)', value: 'Member Banned' },
                     { name: 'Kicks', value: 'Member Kicked' },
                     { name: 'Timeouts', value: 'Member Timed Out' },
-                    { name: 'Warnings', value: 'User Warned' }
+                    { name: 'Verwarnungen (Warnings)', value: 'User Warned' }
                 )
         )
         .addUserOption(option =>
             option.setName('user')
-                .setDescription('Filter cases by specific user')
+                .setDescription('Filtert die Fälle nach einem bestimmten Nutzer')
         )
         .addIntegerOption(option =>
             option.setName('limit')
-                .setDescription('Number of cases to show (default: 10)')
+                .setDescription('Anzahl der anzuzeigenden Fälle (Standard: 10)')
                 .setMinValue(1)
                 .setMaxValue(50)
         ),
@@ -57,8 +58,8 @@ export default {
 
             if (cases.length === 0) {
                 throw new Error(targetUser 
-                    ? `No moderation cases found for ${targetUser.tag}`
-                    : `No ${filterType === 'all' ? '' : filterType} cases found in this server.`
+                    ? `Keine Moderationsfälle für ${targetUser.tag} gefunden.`
+                    : `Keine Fälle vom Typ "${filterType === 'all' ? 'Alle Fälle' : filterType}" auf diesem Server gefunden.`
                 );
             }
 
@@ -72,23 +73,23 @@ export default {
                 const pageCases = cases.slice(startIndex, endIndex);
 
                 const embed = createEmbed({
-                    title: '📋 Moderation Cases',
-                    description: `Showing moderation cases for **${interaction.guild.name}**\n\n**Page ${page} of ${totalPages}**`
+                    title: '📋 Moderationsfälle',
+                    description: `Angezeigte Moderationsfälle für **${interaction.guild.name}**\n\n**Seite ${page} von ${totalPages}**`
                 });
 
                 pageCases.forEach(case_ => {
-                    const date = new Date(case_.createdAt).toLocaleDateString();
-                    const time = new Date(case_.createdAt).toLocaleTimeString();
+                    const date = new Date(case_.createdAt).toLocaleDateString('de-DE');
+                    const time = new Date(case_.createdAt).toLocaleTimeString('de-DE');
                     
                     embed.addFields({
-                        name: `Case #${case_.caseId} - ${case_.action}`,
-                        value: `**Target:** ${case_.target}\n**Moderator:** ${case_.executor}\n**Date:** ${date} at ${time}\n**Reason:** ${case_.reason || 'No reason provided'}`,
+                        name: `Fall #${case_.caseId} - ${case_.action}`,
+                        value: `**Ziel:** ${case_.target}\n**Moderator:** ${case_.executor}\n**Datum:** ${date} um ${time}\n**Grund:** ${case_.reason || 'Kein Grund angegeben'}`,
                         inline: false
                     });
                 });
 
                 embed.setFooter({
-                    text: `Total cases: ${cases.length} | Filter: ${filterType}${targetUser ? ` | User: ${targetUser.tag}` : ''}`
+                    text: `Fälle insgesamt: ${cases.length} | Filter: ${filterType}${targetUser ? ` | Nutzer: ${targetUser.tag}` : ''}`
                 });
 
                 return embed;
@@ -99,19 +100,19 @@ export default {
                 
                 const prevButton = new ButtonBuilder()
                     .setCustomId('prev_page')
-                    .setLabel('⬅️ Previous')
+                    .setLabel('⬅️ Zurück')
                     .setStyle(ButtonStyle.Secondary)
                     .setDisabled(page === 1);
 
                 const pageInfoButton = new ButtonBuilder()
                     .setCustomId('page_info')
-                    .setLabel(`Page ${page}/${totalPages}`)
+                    .setLabel(`Seite ${page}/${totalPages}`)
                     .setStyle(ButtonStyle.Primary)
                     .setDisabled(true);
 
                 const nextButton = new ButtonBuilder()
                     .setCustomId('next_page')
-                    .setLabel('Next ➡️')
+                    .setLabel('Weiter ➡️')
                     .setStyle(ButtonStyle.Secondary)
                     .setDisabled(page === totalPages);
 
@@ -126,7 +127,7 @@ export default {
 
             const collector = message.createMessageComponentCollector({
                 componentType: ComponentType.Button,
-time: 120000
+                time: 120000
             });
 
             collector.on('collect', async (buttonInteraction) => {
@@ -134,7 +135,7 @@ time: 120000
 
                 if (buttonInteraction.user.id !== interaction.user.id) {
                     await buttonInteraction.followUp({
-                        content: 'You cannot use these buttons. Run `/cases` to get your own case view.',
+                        content: 'Du kannst diese Buttons nicht verwenden. Nutze den Befehl `/cases` selbst, um deine eigene Übersicht zu öffnen.',
                         flags: MessageFlags.Ephemeral
                     });
                     return;
@@ -163,6 +164,7 @@ time: 120000
                         components: [disabledRow]
                     });
                 } catch (error) {
+                    // Fehler beim Deaktivieren der Buttons ignorieren (falls Nachricht gelöscht wurde)
                 }
             });
 
@@ -171,8 +173,10 @@ time: 120000
             return InteractionHelper.safeEditReply(interaction, {
                 embeds: [
                     errorEmbed(
-                        'System Error',
-                        'An error occurred while retrieving moderation cases. Please try again later.'
+                        'Systemfehler',
+                        error.message.startsWith('Keine') 
+                            ? error.message 
+                            : 'Beim Abrufen der Moderationsfälle ist ein Fehler aufgetreten. Bitte versuche es später noch einmal.'
                     )
                 ],
                 flags: MessageFlags.Ephemeral
@@ -180,7 +184,3 @@ time: 120000
         }
     }
 };
-
-
-
-
