@@ -4,18 +4,18 @@ import { logger } from '../../utils/logger.js';
 import { TitanBotError, ErrorTypes, handleInteractionError } from '../../utils/errorHandler.js';
 import { getGuildGiveaways, deleteGiveaway } from '../../utils/giveaways.js';
 import { logEvent, EVENT_TYPES } from '../../services/loggingService.js';
-
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+
 export default {
     data: new SlashCommandBuilder()
         .setName("gdelete")
         .setDescription(
-            "Deletes a giveaway message and removes it from the database.",
+            "Löscht eine Gewinnspiel-Nachricht und entfernt sie aus der Datenbank.",
         )
         .addStringOption((option) =>
             option
                 .setName("messageid")
-                .setDescription("The message ID of the giveaway to delete.")
+                .setDescription("Die Nachrichten-ID des zu löschenden Gewinnspiels.")
                 .setRequired(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
@@ -27,7 +27,7 @@ export default {
                 throw new TitanBotError(
                     'Giveaway command used outside guild',
                     ErrorTypes.VALIDATION,
-                    'This command can only be used in a server.',
+                    'Dieser Befehl kann nur innerhalb eines Servers verwendet werden.',
                     { userId: interaction.user.id }
                 );
             }
@@ -37,7 +37,7 @@ export default {
                 throw new TitanBotError(
                     'User lacks ManageGuild permission',
                     ErrorTypes.PERMISSION,
-                    "You need the 'Manage Server' permission to delete a giveaway.",
+                    "Du benötigst die Berechtigung 'Server verwalten', um ein Gewinnspiel zu löschen.",
                     { userId: interaction.user.id, guildId: interaction.guildId }
                 );
             }
@@ -51,7 +51,7 @@ export default {
                 throw new TitanBotError(
                     'Invalid message ID format',
                     ErrorTypes.VALIDATION,
-                    'Please provide a valid message ID.',
+                    'Bitte gib eine gültige Nachrichten-ID an.',
                     { providedId: messageId }
                 );
             }
@@ -63,13 +63,13 @@ export default {
                 throw new TitanBotError(
                     `Giveaway not found: ${messageId}`,
                     ErrorTypes.VALIDATION,
-                    "No giveaway was found with that message ID.",
+                    "Es wurde kein Gewinnspiel mit dieser Nachrichten-ID gefunden.",
                     { messageId, guildId: interaction.guildId }
                 );
             }
 
             let deletedMessage = false;
-            let channelName = "Unknown Channel";
+            let channelName = "Unbekannter Kanal";
 
             const tryDeleteFromChannel = async (channel) => {
                 if (!channel || !channel.isTextBased() || !channel.messages?.fetch) {
@@ -82,7 +82,7 @@ export default {
                 }
 
                 await message.delete();
-                channelName = channel.name || 'unknown-channel';
+                channelName = channel.name || 'unbekannter-kanal';
                 deletedMessage = true;
                 return true;
             };
@@ -122,7 +122,7 @@ export default {
                 throw new TitanBotError(
                     `Failed to delete giveaway from database: ${messageId}`,
                     ErrorTypes.UNKNOWN,
-                    'The giveaway could not be removed from the database. Please try again.',
+                    'Das Gewinnspiel konnte nicht aus der Datenbank entfernt werden. Bitte versuche es erneut.',
                     { messageId, guildId: interaction.guildId }
                 );
             }
@@ -134,24 +134,24 @@ export default {
                 throw new TitanBotError(
                     `Giveaway still exists after deletion: ${messageId}`,
                     ErrorTypes.UNKNOWN,
-                    'Deletion did not persist in the database. Please try again.',
+                    'Die Löschung wurde nicht in der Datenbank gespeichert. Bitte versuche es erneut.',
                     { messageId, guildId: interaction.guildId }
                 );
             }
 
             const statusMsg = deletedMessage
-                ? `and the message was deleted from #${channelName}`
-                : `but the message was already deleted or the channel was inaccessible.`;
+                ? `und die Nachricht wurde aus #${channelName} gelöscht`
+                : `aber die Nachricht war bereits gelöscht oder der Kanal war nicht zugänglich.`;
 
             const winnerIds = Array.isArray(giveaway.winnerIds) ? giveaway.winnerIds : [];
             const hasWinners = winnerIds.length > 0;
             const wasEnded = giveaway.ended === true || giveaway.isEnded === true || hasWinners;
 
             const winnerStatusMsg = hasWinners
-                ? `This giveaway already had ${winnerIds.length} winner(s) selected.`
+                ? `Für dieses Gewinnspiel wurden bereits ${winnerIds.length} Gewinner ausgewählt.`
                 : wasEnded
-                    ? 'This giveaway was ended with no valid winners.'
-                    : 'No winner was picked before deletion.';
+                    ? 'Dieses Gewinnspiel wurde ohne gültige Gewinner beendet.'
+                    : 'Vor der Löschung wurde kein Gewinner ermittelt.';
 
             logger.info(`Giveaway deleted: ${messageId} in ${channelName}`);
 
@@ -167,12 +167,12 @@ export default {
                         userId: interaction.user.id,
                         fields: [
                             {
-                                name: '🎁 Prize',
-                                value: giveaway.prize || 'Unknown',
+                                name: '🎁 Gewinn',
+                                value: giveaway.prize || 'Unbekannt',
                                 inline: true
                             },
                             {
-                                name: '📊 Entries',
+                                name: '📊 Teilnahmen',
                                 value: (giveaway.participants?.length || 0).toString(),
                                 inline: true
                             }
@@ -186,8 +186,8 @@ export default {
             return InteractionHelper.safeReply(interaction, {
                 embeds: [
                     successEmbed(
-                        "Giveaway Deleted",
-                        `Successfully deleted the giveaway for **${giveaway.prize}** ${statusMsg}. ${winnerStatusMsg}`,
+                        "Gewinnspiel gelöscht",
+                        `Das Gewinnspiel für **${giveaway.prize}** wurde erfolgreich entfernt ${statusMsg}. ${winnerStatusMsg}`,
                     ),
                 ],
                 flags: MessageFlags.Ephemeral,
@@ -203,5 +203,3 @@ export default {
         }
     },
 };
-
-
