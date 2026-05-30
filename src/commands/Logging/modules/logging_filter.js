@@ -9,13 +9,13 @@ export default {
     async execute(interaction, config, client) {
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return InteractionHelper.safeReply(interaction, {
-                embeds: [errorEmbed('Permission Denied', 'You need **Administrator** permissions to manage log filters.')],
+                embeds: [errorEmbed('Berechtigung verweigert', 'Du benötigst die Berechtigung **Administrator**, um die Log-Filter zu verwalten.')],
             });
         }
 
         if (!client.db) {
             return InteractionHelper.safeEditReply(interaction, {
-                embeds: [errorEmbed('Database Error', 'Database not initialized.')],
+                embeds: [errorEmbed('Datenbankfehler', 'Die Datenbank wurde nicht initialisiert.')],
             });
         }
 
@@ -35,17 +35,17 @@ export default {
 
         if (type === 'user') {
             targetArray = currentConfig.logIgnore.users;
-            entityType = 'User';
+            entityType = 'Nutzer';
             const member = await interaction.guild.members.fetch(entityId).catch(() => null);
             entityName = member ? member.user.tag : `ID: ${entityId}`;
         } else if (type === 'channel') {
             targetArray = currentConfig.logIgnore.channels;
-            entityType = 'Channel';
+            entityType = 'Kanal';
             const channel = interaction.guild.channels.cache.get(entityId);
             entityName = channel ? `#${channel.name}` : `ID: ${entityId}`;
         } else {
             return InteractionHelper.safeEditReply(interaction, {
-                embeds: [errorEmbed('Invalid Type', "Choose `user` or `channel`.")],
+                embeds: [errorEmbed('Ungültiger Typ', "Bitte wähle `user` oder `channel`.")],
             });
         }
 
@@ -54,20 +54,20 @@ export default {
         if (subcommand === 'add') {
             if (targetArray.includes(entityId)) {
                 return InteractionHelper.safeEditReply(interaction, {
-                    embeds: [errorEmbed('Already Filtered', `${entityType} **${entityName}** is already on the ignore list.`)],
+                    embeds: [errorEmbed('Bereits gefiltert', `${entityType} **${entityName}** steht bereits auf der Ignorierliste.`)],
                 });
             }
             targetArray.push(entityId);
-            successMessage = `${entityType} **${entityName}** added to the log ignore list. Events from them will not be logged.`;
+            successMessage = `${entityType} **${entityName}** wurde zur Ignorierliste hinzugefügt. Ereignisse von dort/ihnen werden nicht mehr protokolliert.`;
         } else if (subcommand === 'remove') {
             const index = targetArray.indexOf(entityId);
             if (index === -1) {
                 return InteractionHelper.safeEditReply(interaction, {
-                    embeds: [errorEmbed('Not Filtered', `${entityType} **${entityName}** was not on the ignore list.`)],
+                    embeds: [errorEmbed('Nicht gefiltert', `${entityType} **${entityName}** befand sich nicht auf der Ignorierliste.`)],
                 });
             }
             targetArray.splice(index, 1);
-            successMessage = `${entityType} **${entityName}** removed from the log ignore list. Events will now be logged.`;
+            successMessage = `${entityType} **${entityName}** wurde von der Ignorierliste entfernt. Ereignisse werden ab jetzt wieder protokolliert.`;
         } else {
             return;
         }
@@ -87,12 +87,12 @@ export default {
             });
 
             await InteractionHelper.safeEditReply(interaction, {
-                embeds: [successEmbed('Filter Updated', successMessage)],
+                embeds: [successEmbed('Filter aktualisiert', successMessage)],
             });
         } catch (error) {
             logger.error('logging filter error:', error);
             await InteractionHelper.safeEditReply(interaction, {
-                embeds: [errorEmbed('Database Error', 'Failed to save the filter change.')],
+                embeds: [errorEmbed('Datenbankfehler', 'Die Filteränderung konnte nicht gespeichert werden.')],
             });
         }
     },
