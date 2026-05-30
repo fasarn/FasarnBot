@@ -23,8 +23,8 @@ const ACTIVITIES = {
 const ACTIVITY_NAMES = {
     'youtube': 'YouTube Together',
     'poker': 'Poker Night',
-    'chess': 'Chess in the Park',
-    'checkers': 'Checkers in the Park',
+    'chess': 'Chess im Park',
+    'checkers': 'Dame im Park',
     'letter-league': 'Letter League',
     'spellcast': 'SpellCast',
     'sketch': 'Sketch Heads',
@@ -32,184 +32,269 @@ const ACTIVITY_NAMES = {
     'puttparty': 'Putt Party',
     'landio': 'Land-io',
     'bobble': 'Bobble League',
-    'knowwhat': 'Know What I Mean'
+    'knowwhat': 'Weißt du was ich meine'
 };
 
 export default {
+
     data: new SlashCommandBuilder()
+
         .setName('activity')
-        .setDescription('Start a Discord Activity in your voice channel')
+
+        .setDescription(
+            'Starte eine Discord Aktivität in deinem Sprachkanal'
+        )
+
         .setDMPermission(false)
-        .setDefaultMemberPermissions(PermissionFlagsBits.Connect)
-        
+
+        .setDefaultMemberPermissions(
+            PermissionFlagsBits.Connect
+        )
+
         .addSubcommand(subcommand =>
             subcommand
                 .setName('youtube')
-                .setDescription('Watch YouTube videos together in a voice channel')
+                .setDescription(
+                    'Schaue gemeinsam YouTube Videos im Sprachkanal'
+                )
         )
-        
+
         .addSubcommand(subcommand =>
             subcommand
                 .setName('poker')
-                .setDescription('Play Poker Night with friends')
+                .setDescription(
+                    'Spiele Poker Night mit Freunden'
+                )
         )
-        
+
         .addSubcommand(subcommand =>
             subcommand
                 .setName('chess')
-                .setDescription('Play Chess in the Park')
+                .setDescription(
+                    'Spiele Schach im Park'
+                )
         )
-        
+
         .addSubcommand(subcommand =>
             subcommand
                 .setName('checkers')
-                .setDescription('Play Checkers in the Park')
+                .setDescription(
+                    'Spiele Dame im Park'
+                )
         )
-        
+
         .addSubcommand(subcommand =>
             subcommand
                 .setName('letter-league')
-                .setDescription('Play the word-based game Letter League')
+                .setDescription(
+                    'Spiele das wortbasierte Spiel Letter League'
+                )
         )
-        
+
         .addSubcommand(subcommand =>
             subcommand
                 .setName('spellcast')
-                .setDescription('Play the magical word game SpellCast')
+                .setDescription(
+                    'Spiele das magische Wortspiel SpellCast'
+                )
         )
-        
+
         .addSubcommand(subcommand =>
             subcommand
                 .setName('sketch')
-                .setDescription('Play Sketch Heads (Pictionary style)')
+                .setDescription(
+                    'Spiele Sketch Heads (Pictionary Stil)'
+                )
         )
-        
+
         .addSubcommand(subcommand =>
             subcommand
                 .setName('blazing8s')
-                .setDescription('Play the card game Blazing 8s')
+                .setDescription(
+                    'Spiele das Kartenspiel Blazing 8s'
+                )
         )
-        
+
         .addSubcommand(subcommand =>
             subcommand
                 .setName('puttparty')
-                .setDescription('Play Putt Party (Mini-golf)')
+                .setDescription(
+                    'Spiele Putt Party (Minigolf)'
+                )
         )
-        
+
         .addSubcommand(subcommand =>
             subcommand
                 .setName('landio')
-                .setDescription('Play the territory game Land-io')
+                .setDescription(
+                    'Spiele das Gebietsspiel Land-io'
+                )
         )
-        
+
         .addSubcommand(subcommand =>
             subcommand
                 .setName('bobble')
-                .setDescription('Play Bobble League')
+                .setDescription(
+                    'Spiele Bobble League'
+                )
         )
-        
+
         .addSubcommand(subcommand =>
             subcommand
                 .setName('knowwhat')
-                .setDescription('Play Know What I Mean')
+                .setDescription(
+                    'Spiele Weißt du was ich meine'
+                )
         ),
 
     category: "Voice",
 
     async execute(interaction, config, client) {
+
         try {
-            
-            const deferred = await InteractionHelper.safeDefer(interaction, { flags: MessageFlags.Ephemeral });
+
+            const deferred =
+                await InteractionHelper.safeDefer(
+                    interaction,
+                    {
+                        flags:
+                            MessageFlags.Ephemeral
+                    }
+                );
+
             if (!deferred) {
                 return;
             }
 
-            const { member, options } = interaction;
-            const activity = options.getSubcommand();
-            const activityId = ACTIVITIES[activity];
-            const activityName = ACTIVITY_NAMES[activity] || activity;
+            const {
+                member,
+                options
+            } = interaction;
 
-            if (!member.voice.channel) {
-                return await InteractionHelper.safeEditReply(interaction, {
-                    embeds: [errorEmbed('Not in Voice Channel', 'You need to be in a voice channel to start an activity!')]
-                });
+            const activity =
+                options.getSubcommand();
+
+            const activityId =
+                ACTIVITIES[
+                    activity
+                ];
+
+            const activityName =
+                ACTIVITY_NAMES[
+                    activity
+                ] || activity;
+
+            if (
+                !member.voice.channel
+            ) {
+
+                return await InteractionHelper.safeEditReply(
+                    interaction,
+                    {
+                        embeds: [
+                            errorEmbed(
+                                'Nicht in einem Sprachkanal',
+                                'Du musst in einem Sprachkanal sein, um eine Aktivität zu starten!'
+                            )
+                        ]
+                    }
+                );
             }
 
-            logger.debug('Activity command - validating permissions', {
-                userId: interaction.user.id,
-                voiceChannelId: member.voice.channel.id,
-                voiceChannelName: member.voice.channel.name,
-                activity: activity
-            });
+            const permissions =
+                member.voice.channel.permissionsFor(
+                    interaction.guild.members.me
+                );
 
-            const permissions = member.voice.channel.permissionsFor(interaction.guild.members.me);
-            if (!permissions.has('CreateInstantInvite')) {
-                logger.warn('Activity command - missing permissions', {
-                    userId: interaction.user.id,
-                    voiceChannelId: member.voice.channel.id,
-                    guildId: interaction.guildId,
-                    activity: activity,
-                    missingPermission: 'CreateInstantInvite'
-                });
-                return await InteractionHelper.safeEditReply(interaction, {
-                    embeds: [errorEmbed('Missing Permissions', 'I need the `Create Invite` permission to start an activity!')]
-                });
+            if (
+                !permissions.has(
+                    'CreateInstantInvite'
+                )
+            ) {
+
+                return await InteractionHelper.safeEditReply(
+                    interaction,
+                    {
+                        embeds: [
+                            errorEmbed(
+                                'Fehlende Berechtigungen',
+                                'Ich benötige die Berechtigung `Einladung erstellen`, um eine Aktivität zu starten!'
+                            )
+                        ]
+                    }
+                );
             }
 
-            const invite = await interaction.client.rest.post(
-                `/channels/${member.voice.channel.id}/invites`,
+            const invite =
+                await interaction.client.rest.post(
+                    `/channels/${member.voice.channel.id}/invites`,
+                    {
+                        body: {
+
+                            max_age:
+                                86400,
+
+                            target_type:
+                                2,
+
+                            target_application_id:
+                                activityId,
+                        },
+                    }
+                );
+
+            await InteractionHelper.safeEditReply(
+                interaction,
                 {
-                    body: {
-                        max_age: 86400,
-                        target_type: 2,
-                        target_application_id: activityId,
-                    },
+                    embeds: [
+                        createEmbed({
+
+                            title:
+                                `🎮 ${activityName}`,
+
+                            description:
+                                `Klicke auf den Link unten, um **${activityName}** in ${member.voice.channel.name} zu starten!\n\n[${activityName} beitreten](https://discord.gg/${invite.code})`,
+
+                            color:
+                                'success'
+                        })
+                    ]
                 }
             );
 
-            logger.info('Activity invite created successfully', {
-                userId: interaction.user.id,
-                userTag: interaction.user.tag,
-                voiceChannelId: member.voice.channel.id,
-                voiceChannelName: member.voice.channel.name,
-                guildId: interaction.guildId,
-                activity: activity,
-                activityName: activityName,
-                inviteCode: invite.code,
-                commandName: 'activity'
-            });
-
-            await InteractionHelper.safeEditReply(interaction, {
-                embeds: [createEmbed({
-                    title: `🎮 ${activityName}`,
-                    description: `Click the link below to start **${activityName}** in ${member.voice.channel.name}!\n\n[Join ${activityName} Activity](https://discord.gg/${invite.code})`,
-                    color: 'success'
-                })]
-            });
-
         } catch (error) {
-            logger.error('Error creating activity invite', {
-                error: error.message,
-                stack: error.stack,
-                userId: interaction.user.id,
-                voiceChannelId: interaction.member?.voice.channel?.id,
-                guildId: interaction.guildId,
-                activity: options.getSubcommand(),
-                commandName: 'activity'
-            });
-            
-            if (!interaction.deferred && !interaction.replied) {
-                await handleInteractionError(interaction, error, {
-                    commandName: 'activity',
-                    source: 'discord_activity_api'
-                });
+
+            if (
+                !interaction.deferred &&
+                !interaction.replied
+            ) {
+
+                await handleInteractionError(
+                    interaction,
+                    error,
+                    {
+                        commandName:
+                            'activity',
+
+                        source:
+                            'discord_activity_api'
+                    }
+                );
+
             } else {
-                await InteractionHelper.safeEditReply(interaction, {
-                    embeds: [errorEmbed('Failed to Create Activity', 'An error occurred while trying to create the activity. Please try again later.')]
-                });
+
+                await InteractionHelper.safeEditReply(
+                    interaction,
+                    {
+                        embeds: [
+                            errorEmbed(
+                                'Aktivität konnte nicht erstellt werden',
+                                'Beim Erstellen der Aktivität ist ein Fehler aufgetreten. Bitte versuche es später erneut.'
+                            )
+                        ]
+                    }
+                );
             }
         }
     },
 };
-
-
