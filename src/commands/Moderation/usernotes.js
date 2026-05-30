@@ -3,21 +3,11 @@ import { createEmbed, errorEmbed, successEmbed, infoEmbed, warningEmbed } from '
 import { logger } from '../../utils/logger.js';
 import { getFromDb, setInDb, deleteFromDb } from '../../utils/database.js';
 import { sanitizeInput } from '../../utils/sanitization.js';
-
-
-
-
-
-
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+
 function getUserNotesKey(guildId, userId) {
     return `moderation_user_notes_${guildId}_${userId}`;
 }
-
-
-
-
-
 
 function getGuildNotesListKey(guildId) {
     return `moderation_user_notes_list_${guildId}`;
@@ -26,32 +16,32 @@ function getGuildNotesListKey(guildId) {
 export default {
     data: new SlashCommandBuilder()
         .setName("usernotes")
-        .setDescription("Manage user notes for moderation purposes")
+        .setDescription("Verwaltet Moderationsnotizen für einen Nutzer")
         .addSubcommand(subcommand =>
             subcommand
                 .setName("add")
-                .setDescription("Add a note to a user")
+                .setDescription("Fügt einem Nutzer eine Notiz hinzu")
                 .addUserOption(option =>
                     option
                         .setName("target")
-                        .setDescription("The user to add a note for")
+                        .setDescription("Der Nutzer, dem die Notiz hinzugefügt wird")
                         .setRequired(true)
                 )
                 .addStringOption(option =>
                     option
                         .setName("note")
-                        .setDescription("The note to add")
+                        .setDescription("Der Inhalt der Notiz")
                         .setRequired(true)
                 )
                 .addStringOption(option =>
                     option
                         .setName("type")
-                        .setDescription("Type of note")
+                        .setDescription("Typ der Notiz")
                         .addChoices(
-                            { name: "Warning", value: "warning" },
-                            { name: "Positive", value: "positive" },
+                            { name: "Warnung", value: "warning" },
+                            { name: "Positiv", value: "positive" },
                             { name: "Neutral", value: "neutral" },
-                            { name: "Alert", value: "alert" }
+                            { name: "Alarm", value: "alert" }
                         )
                         .setRequired(false)
                 )
@@ -59,28 +49,28 @@ export default {
         .addSubcommand(subcommand =>
             subcommand
                 .setName("view")
-                .setDescription("View notes for a user")
+                .setDescription("Zeigt die Notizen eines Nutzers an")
                 .addUserOption(option =>
                     option
                         .setName("target")
-                        .setDescription("The user to view notes for")
+                        .setDescription("Der Nutzer, dessen Notizen angezeigt werden")
                         .setRequired(true)
                 )
         )
         .addSubcommand(subcommand =>
             subcommand
                 .setName("remove")
-                .setDescription("Remove a specific note from a user")
+                .setDescription("Entfernt eine bestimmte Notiz eines Nutzers")
                 .addUserOption(option =>
                     option
                         .setName("target")
-                        .setDescription("The user to remove a note from")
+                        .setDescription("Der Nutzer, dessen Notiz entfernt wird")
                         .setRequired(true)
                 )
                 .addIntegerOption(option =>
                     option
                         .setName("index")
-                        .setDescription("The index of the note to remove")
+                        .setDescription("Die Nummer (Index) der zu entfernenden Notiz")
                         .setRequired(true)
                         .setMinValue(1)
                 )
@@ -88,11 +78,11 @@ export default {
         .addSubcommand(subcommand =>
             subcommand
                 .setName("clear")
-                .setDescription("Clear all notes for a user")
+                .setDescription("Löscht alle Notizen eines Nutzers")
                 .addUserOption(option =>
                     option
                         .setName("target")
-                        .setDescription("The user to clear notes for")
+                        .setDescription("Der Nutzer, dessen Notizen vollständig gelöscht werden")
                         .setRequired(true)
                 )
         )
@@ -104,8 +94,8 @@ export default {
             return InteractionHelper.safeReply(interaction, {
                 embeds: [
                     errorEmbed(
-                        "Permission Denied",
-                        "You do not have permission to manage user notes."
+                        "Berechtigung verweigert",
+                        "Du hast keine Berechtigung, Nutzernotizen zu verwalten."
                     ),
                 ],
             });
@@ -119,8 +109,8 @@ export default {
             return InteractionHelper.safeReply(interaction, {
                 embeds: [
                     errorEmbed(
-                        "Invalid Subcommand",
-                        "Please select a valid subcommand."
+                        "Ungültiger Unterbefehl",
+                        "Bitte wähle einen gültigen Unterbefehl aus."
                     ),
                 ],
             });
@@ -146,8 +136,8 @@ export default {
                     return InteractionHelper.safeReply(interaction, {
                         embeds: [
                             errorEmbed(
-                                "Invalid Subcommand",
-                                "Please select a valid subcommand."
+                                "Ungültiger Unterbefehl",
+                                "Bitte wähle einen gültigen Unterbefehl aus."
                             ),
                         ],
                     });
@@ -157,8 +147,8 @@ export default {
             return InteractionHelper.safeReply(interaction, {
                 embeds: [
                     errorEmbed(
-                        "System Error",
-                        "An error occurred while processing your request. Please try again later."
+                        "Systemfehler",
+                        "Beim Verarbeiten deiner Anfrage ist ein Fehler aufgetreten. Bitte versuche es später noch einmal."
                     ),
                 ],
                 flags: MessageFlags.Ephemeral
@@ -175,8 +165,8 @@ async function handleAddNote(interaction, targetUser, notes, guildId) {
         return InteractionHelper.safeReply(interaction, {
             embeds: [
                 errorEmbed(
-                    "Note Too Long",
-                    "Notes must be 1000 characters or less."
+                    "Notiz zu lang",
+                    "Notizen dürfen maximal 1000 Zeichen lang sein."
                 ),
             ],
         });
@@ -186,14 +176,13 @@ async function handleAddNote(interaction, targetUser, notes, guildId) {
         return InteractionHelper.safeReply(interaction, {
             embeds: [
                 errorEmbed(
-                    "Empty Note",
-                    "Note cannot be empty."
+                    "Leere Notiz",
+                    "Die Notiz darf nicht leer sein."
                 ),
             ],
         });
     }
 
-    
     note = sanitizeInput(note);
 
     const noteData = {
@@ -211,15 +200,18 @@ async function handleAddNote(interaction, targetUser, notes, guildId) {
     await setInDb(notesKey, notes);
 
     const typeInfo = getNoteTypeInfo(type);
+    
+    const translatedTypes = { warning: "Warnung", positive: "Positiv", neutral: "Neutral", alert: "Alarm" };
+    const displayType = translatedTypes[type] || type;
 
     return InteractionHelper.safeReply(interaction, {
         embeds: [
             successEmbed(
-                `${typeInfo.emoji} Note Added`,
-                `Added a **${type}** note for **${targetUser.tag}**:\n\n` +
+                `${typeInfo.emoji} Notiz hinzugefügt`,
+                `Eine **${displayType}**-Notiz für **${targetUser.tag}** wurde hinzugefügt:\n\n` +
                 `> ${note}\n\n` +
                 `**Moderator:** ${interaction.user.tag}\n` +
-                `**Total Notes:** ${notes.length}`
+                `**Notizen insgesamt:** ${notes.length}`
             )
         ]
     });
@@ -230,33 +222,36 @@ async function handleViewNotes(interaction, targetUser, notes) {
         return InteractionHelper.safeReply(interaction, {
             embeds: [
                 infoEmbed(
-                    "📝 No Notes",
-                    `There are no notes for **${targetUser.tag}**.`
+                    "📝 Keine Notizen",
+                    `Es liegen keine Notizen für **${targetUser.tag}** vor.`
                 ),
             ],
         });
     }
 
     const sortedNotes = [...notes].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const translatedTypes = { warning: "Warnung", positive: "Positiv", neutral: "Neutral", alert: "Alarm" };
 
-    let description = `**Notes for ${targetUser.tag} (${targetUser.id}):**\n\n`;
+    let description = `**Notizen für ${targetUser.tag} (${targetUser.id}):**\n\n`;
     
     sortedNotes.forEach((note, index) => {
         const typeInfo = getNoteTypeInfo(note.type);
-        const date = new Date(note.timestamp).toLocaleDateString();
-        description += `${typeInfo.emoji} **Note #${index + 1}** (${note.type}) - ${date}\n`;
+        const date = new Date(note.timestamp).toLocaleDateString('de-DE');
+        const displayType = translatedTypes[note.type] || note.type;
+        
+        description += `${typeInfo.emoji} **Notiz #${index + 1}** (${displayType}) - ${date}\n`;
         description += `> ${note.content}\n`;
-        description += `*Added by ${note.author}*\n\n`;
+        description += `*Hinzugefügt von ${note.author}*\n\n`;
     });
 
     if (description.length > 4000) {
-        description = description.substring(0, 3900) + "\n... *(truncated)*";
+        description = description.substring(0, 3900) + "\n... *(gekürzt)*";
     }
 
     return InteractionHelper.safeReply(interaction, {
         embeds: [
             infoEmbed(
-                `📝 User Notes (${notes.length})`,
+                `📝 Nutzernotizen (${notes.length})`,
                 description
             )
         ]
@@ -264,14 +259,14 @@ async function handleViewNotes(interaction, targetUser, notes) {
 }
 
 async function handleRemoveNote(interaction, targetUser, notes, guildId) {
-const index = interaction.options.getInteger("index") - 1;
+    const index = interaction.options.getInteger("index") - 1;
 
     if (index < 0 || index >= notes.length) {
         return InteractionHelper.safeReply(interaction, {
             embeds: [
                 errorEmbed(
-                    "Invalid Index",
-                    `Please provide a valid note index (1-${notes.length}).`
+                    "Ungültiger Index",
+                    `Bitte gib eine gültige Notiznummer an (1-${notes.length}).`
                 ),
             ],
         });
@@ -288,10 +283,10 @@ const index = interaction.options.getInteger("index") - 1;
     return InteractionHelper.safeReply(interaction, {
         embeds: [
             successEmbed(
-                `${typeInfo.emoji} Note Removed`,
-                `Removed note #${index + 1} from **${targetUser.tag}**:\n\n` +
+                `${typeInfo.emoji} Notiz entfernt`,
+                `Notiz #${index + 1} von **${targetUser.tag}** wurde gelöscht:\n\n` +
                 `> ${removedNote.content}\n\n` +
-                `**Remaining Notes:** ${notes.length}`
+                `**Verbleibende Notizen:** ${notes.length}`
             )
         ]
     });
@@ -304,8 +299,8 @@ async function handleClearNotes(interaction, targetUser, notes, guildId) {
         return InteractionHelper.safeReply(interaction, {
             embeds: [
                 infoEmbed(
-                    "No Notes to Clear",
-                    `There are no notes for **${targetUser.tag}** to clear.`
+                    "Keine Notizen zum Löschen",
+                    `Es gibt keine Notizen für **${targetUser.tag}**, die gelöscht werden könnten.`
                 ),
             ],
         });
@@ -319,8 +314,8 @@ async function handleClearNotes(interaction, targetUser, notes, guildId) {
     return InteractionHelper.safeReply(interaction, {
         embeds: [
             successEmbed(
-                "🗑️ Notes Cleared",
-                `Cleared **${noteCount}** notes from **${targetUser.tag}**.`
+                "🗑️ Notizen gelöscht",
+                `Es wurden alle **${noteCount}** Notizen von **${targetUser.tag}** gelöscht.`
             )
         ]
     });
@@ -336,8 +331,3 @@ function getNoteTypeInfo(type) {
     
     return types[type] || types.neutral;
 }
-
-
-
-
-
