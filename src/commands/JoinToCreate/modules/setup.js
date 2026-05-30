@@ -36,14 +36,14 @@ export default {
             });
 
             const embed = successEmbed(
-                `Created trigger channel: ${triggerChannel}\n\n` +
-                `**Settings:**\n` +
-                `• Temporary Channel Name Template: \`${nameTemplate}\`\n` +
-                `• User Limit: ${userLimit === 0 ? 'No limit' : userLimit + ' users'}\n` +
+                `Trigger-Kanal erstellt: ${triggerChannel}\n\n` +
+                `**Einstellungen:**\n` +
+                `• Vorlage für temporäre Kanalnamen: \`${nameTemplate}\`\n` +
+                `• Benutzerlimit: ${userLimit === 0 ? 'Kein Limit' : userLimit + ' Benutzer'}\n` +
                 `• Bitrate: ${bitrate} kbps\n` +
-                `${category ? `• Category: ${category.name}` : '• Category: None (root level)'}\n\n` +
-                `When users join this channel, a temporary voice channel will be created for them.`,
-                '✅ Join to Create Setup Complete'
+                `${category ? `• Kategorie: ${category.name}` : '• Kategorie: Keine (Hauptebene)'}\n\n` +
+                `Wenn Benutzer diesem Kanal beitreten, wird ein temporärer Sprachkanal für sie erstellt.`,
+                '✅ „Join to Create“-Einrichtung abgeschlossen'
             );
 
             try {
@@ -71,11 +71,8 @@ export default {
             throw new TitanBotError(
                 `Setup failed: ${error.message}`,
                 ErrorTypes.DISCORD_API,
-                'Failed to set up Join to Create system.'
+                'Fehler beim Einrichten des „Join to Create“-Systems.'
             );
         }
     }
 };
-
-
-
