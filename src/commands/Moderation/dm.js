@@ -3,28 +3,28 @@ import { createEmbed, errorEmbed, successEmbed, infoEmbed, warningEmbed } from '
 import { logEvent } from '../../utils/moderation.js';
 import { logger } from '../../utils/logger.js';
 import { sanitizeMarkdown } from '../../utils/sanitization.js';
-
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+
 export default {
     data: new SlashCommandBuilder()
         .setName("dm")
-        .setDescription("Send a direct message to a user (Staff only)")
+        .setDescription("Sendet eine Direktnachricht an einen Nutzer (Nur für Teammitglieder)")
         .addUserOption(option =>
             option
                 .setName("user")
-                .setDescription("The user to send a DM to")
+                .setDescription("Der Nutzer, der die DM erhalten soll")
                 .setRequired(true)
         )
         .addStringOption(option =>
             option
                 .setName("message")
-                .setDescription("The message to send")
+                .setDescription("Die zu sendende Nachricht")
                 .setRequired(true)
         )
         .addBooleanOption(option =>
             option
                 .setName("anonymous")
-                .setDescription("Send the message anonymously (default: false)")
+                .setDescription("Die Nachricht anonym senden (Standard: false)")
                 .setRequired(false)
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
@@ -42,7 +42,7 @@ export default {
             return;
         }
 
-    const targetUser = interaction.options.getUser("user");
+        const targetUser = interaction.options.getUser("user");
         const message = interaction.options.getString("message");
         const anonymous = interaction.options.getBoolean("anonymous") || false;
 
@@ -52,8 +52,8 @@ export default {
                 return await InteractionHelper.safeEditReply(interaction, {
                     embeds: [
                         errorEmbed(
-                            "Message Too Long",
-                            "Messages must be under 2000 characters."
+                            "Nachricht zu lang",
+                            "Nachrichten müssen weniger als 2000 Zeichen enthalten."
                         ),
                     ],
                     flags: MessageFlags.Ephemeral,
@@ -65,8 +65,8 @@ export default {
                 return await InteractionHelper.safeEditReply(interaction, {
                     embeds: [
                         errorEmbed(
-                            "Cannot DM Bot",
-                            "You cannot send DMs to bot accounts."
+                            "Bot-Direktnachricht unmöglich",
+                            "Du kannst keine Direktnachrichten an Bot-Accounts senden."
                         ),
                     ],
                     flags: MessageFlags.Ephemeral,
@@ -81,10 +81,10 @@ export default {
             await dmChannel.send({
                 embeds: [
                     successEmbed(
-                        anonymous ? "Message from the Staff Team" : `Message from ${interaction.user.tag}`,
+                        anonymous ? "Nachricht vom Server-Team" : `Nachricht von ${interaction.user.tag}`,
                         sanitized
                     ).setFooter({
-                        text: `You cannot reply to this message. | Logger ID: ${interaction.id}`
+                        text: `Du kannst auf diese Nachricht nicht antworten. | Protokoll-ID: ${interaction.id}`
                     })
                 ]
             });
@@ -109,29 +109,27 @@ export default {
             return await InteractionHelper.safeEditReply(interaction, {
                 embeds: [
                     successEmbed(
-                        "DM Sent",
-                        `Successfully sent a message to ${targetUser.tag}`
+                        "DM gesendet",
+                        `Die Nachricht wurde erfolgreich an ${targetUser.tag} zugestellt.`
                     ),
                 ],
             });
         } catch (error) {
             logger.error('DM command error:', error);
             
-if (error.code === 50007) {
+            if (error.code === 50007) {
                 return await InteractionHelper.safeEditReply(interaction, {
                     embeds: [
-                        errorEmbed("Error", `Could not send a DM to ${targetUser.tag}. They may have DMs disabled.`),
+                        errorEmbed("Fehler", `Nachricht an ${targetUser.tag} konnte nicht gesendet werden. Der Nutzer hat Direktnachrichten möglicherweise deaktiviert oder blockiert den Bot.`),
                     ],
                 });
             }
             
             return await InteractionHelper.safeEditReply(interaction, {
                 embeds: [
-                    errorEmbed("Error", `Failed to send DM: ${error.message}`),
+                    errorEmbed("Fehler", `Die Direktnachricht konnte nicht gesendet werden: ${error.message}`),
                 ],
             });
         }
     }
 };
-
-
