@@ -14,11 +14,11 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
         .setName("greroll")
-        .setDescription("Rerolls the winner(s) for an ended giveaway.")
+        .setDescription("Lost die Gewinner eines beendeten Gewinnspiels neu aus.")
         .addStringOption((option) =>
             option
                 .setName("messageid")
-                .setDescription("The message ID of the ended giveaway.")
+                .setDescription("Die Nachrichten-ID des beendeten Gewinnspiels.")
                 .setRequired(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
@@ -30,7 +30,7 @@ export default {
                 throw new TitanBotError(
                     'Giveaway command used outside guild',
                     ErrorTypes.VALIDATION,
-                    'This command can only be used in a server.',
+                    'Dieser Befehl kann nur innerhalb eines Servers verwendet werden.',
                     { userId: interaction.user.id }
                 );
             }
@@ -40,7 +40,7 @@ export default {
                 throw new TitanBotError(
                     'User lacks ManageGuild permission',
                     ErrorTypes.PERMISSION,
-                    "You need the 'Manage Server' permission to reroll a giveaway.",
+                    "Du benötigst die Berechtigung 'Server verwalten', um ein Gewinnspiel neu auszulosen.",
                     { userId: interaction.user.id, guildId: interaction.guildId }
                 );
             }
@@ -54,7 +54,7 @@ export default {
                 throw new TitanBotError(
                     'Invalid message ID format',
                     ErrorTypes.VALIDATION,
-                    'Please provide a valid message ID.',
+                    'Bitte gib eine gültige Nachrichten-ID an.',
                     { providedId: messageId }
                 );
             }
@@ -71,7 +71,7 @@ export default {
                 throw new TitanBotError(
                     `Giveaway not found: ${messageId}`,
                     ErrorTypes.VALIDATION,
-                    "No giveaway was found with that message ID in the database.",
+                    "Es wurde kein Gewinnspiel mit dieser Nachrichten-ID in der Datenbank gefunden.",
                     { messageId, guildId: interaction.guildId }
                 );
             }
@@ -81,7 +81,7 @@ export default {
                 throw new TitanBotError(
                     `Giveaway still active: ${messageId}`,
                     ErrorTypes.VALIDATION,
-                    "This giveaway is still active. Please use `/gend` to end it first.",
+                    "Dieses Gewinnspiel ist noch aktiv. Bitte verwende zuerst `/gend`, um es zu beenden.",
                     { messageId, status: 'active' }
                 );
             }
@@ -92,7 +92,7 @@ export default {
                 throw new TitanBotError(
                     `Insufficient participants for reroll: ${participants.length} < ${giveaway.winnerCount}`,
                     ErrorTypes.VALIDATION,
-                    "Not enough entries to pick the required number of winners.",
+                    "Es gibt nicht genügend Teilnahmen, um die erforderliche Anzahl an Gewinnern auszulosen.",
                     { participantsCount: participants.length, winnersNeeded: giveaway.winnerCount }
                 );
             }
@@ -132,8 +132,8 @@ export default {
                 return InteractionHelper.safeReply(interaction, {
                     embeds: [
                         successEmbed(
-                            "Reroll Complete",
-                            "The new winners have been selected and saved to the database. Could not find channel to announce.",
+                            "Neu-Auslosung abgeschlossen",
+                            "Die neuen Gewinner wurden ausgewählt und in der Datenbank gespeichert. Der Kanal für die Bekanntmachung wurde nicht gefunden.",
                         ),
                     ],
                     flags: MessageFlags.Ephemeral,
@@ -160,17 +160,17 @@ export default {
                     .map((id) => `<@${id}>`)
                     .join(", ");
                 
-                // Edit the original winner ping if it still exists, otherwise send a new one
+                
                 const existingPingMsg = giveaway.winnerPingMessageId
                     ? await channel.messages.fetch(giveaway.winnerPingMessageId).catch(() => null)
                     : null;
                 if (existingPingMsg) {
                     await existingPingMsg.edit({
-                        content: `🔄 **GIVEAWAY REROLL** 🔄 New winners for **${giveaway.prize}**: ${winnerMentions}!`,
+                        content: `🔄 **GEWINNSPIEL NEU-AUSLOSUNG** 🔄 Neue Gewinner für **${giveaway.prize}**: ${winnerMentions}!`,
                     });
                 } else {
                     const newPingMsg = await channel.send({
-                        content: `🔄 **GIVEAWAY REROLL** 🔄 New winners for **${giveaway.prize}**: ${winnerMentions}!`,
+                        content: `🔄 **GEWINNSPIEL NEU-AUSLOSUNG** 🔄 Neue Gewinner für **${giveaway.prize}**: ${winnerMentions}!`,
                     });
                     updatedGiveaway.winnerPingMessageId = newPingMsg.id;
                 }
@@ -188,17 +188,17 @@ export default {
                             userId: interaction.user.id,
                             fields: [
                                 {
-                                    name: '🎁 Prize',
-                                    value: giveaway.prize || 'Mystery Prize!',
+                                    name: '🎁 Gewinn',
+                                    value: giveaway.prize || 'Geheimnisvoller Preis!',
                                     inline: true
                                 },
                                 {
-                                    name: '🏆 New Winners',
+                                    name: '🏆 Neue Gewinner',
                                     value: winnerMentions,
                                     inline: false
                                 },
                                 {
-                                    name: '👥 Total Entries',
+                                    name: '👥 Teilnahmen gesamt',
                                     value: participants.length.toString(),
                                     inline: true
                                 }
@@ -212,8 +212,8 @@ export default {
                 return InteractionHelper.safeReply(interaction, {
                     embeds: [
                         successEmbed(
-                            "Reroll Complete",
-                            `The new winners have been announced in ${channel}. (Original message not found).`,
+                            "Neu-Auslosung abgeschlossen",
+                            `Die neuen Gewinner wurden in ${channel} bekannt gegeben. (Ursprüngliche Nachricht wurde nicht gefunden).`,
                         ),
                     ],
                     flags: MessageFlags.Ephemeral,
@@ -231,7 +231,7 @@ export default {
             const newRow = createGiveawayButtons(true);
 
             await message.edit({
-                content: "🔄 **GIVEAWAY REROLLED** 🔄",
+                content: "🔄 **GEWINNSPIEL NEU AUSGELOST** 🔄",
                 embeds: [newEmbed],
                 components: [newRow],
             });
@@ -240,17 +240,17 @@ export default {
                 .map((id) => `<@${id}>`)
                 .join(", ");
             
-            // Edit the original winner ping if it still exists, otherwise send a new one
+            
             const existingPingMsg = giveaway.winnerPingMessageId
                 ? await channel.messages.fetch(giveaway.winnerPingMessageId).catch(() => null)
                 : null;
             if (existingPingMsg) {
                 await existingPingMsg.edit({
-                    content: `🔄 **REROLL WINNERS** 🔄 CONGRATULATIONS ${winnerMentions}! You are the new winner(s) for the **${giveaway.prize}** giveaway! Please contact the host <@${giveaway.hostId}> to claim your prize.`,
+                    content: `🔄 **NEUE GEWINNER** 🔄 HERZLICHEN GLÜCKWUNSCH ${winnerMentions}! Du hast die neue Auslosung für das Gewinnspiel **${giveaway.prize}** gewonnen! Bitte melde dich bei dem Organisator <@${giveaway.hostId}>, um deinen Gewinn einzufordern.`,
                 });
             } else {
                 const newPingMsg = await channel.send({
-                    content: `🔄 **REROLL WINNERS** 🔄 CONGRATULATIONS ${winnerMentions}! You are the new winner(s) for the **${giveaway.prize}** giveaway! Please contact the host <@${giveaway.hostId}> to claim your prize.`,
+                    content: `🔄 **NEUE GEWINNER** 🔄 HERZLICHEN GLÜCKWUNSCH ${winnerMentions}! Du hast die neue Auslosung für das Gewinnspiel **${giveaway.prize}** gewonnen! Bitte melde dich bei dem Organisator <@${giveaway.hostId}>, um deinen Gewinn einzufordern.`,
                 });
                 updatedGiveaway.winnerPingMessageId = newPingMsg.id;
             }
@@ -268,17 +268,17 @@ export default {
                         userId: interaction.user.id,
                         fields: [
                             {
-                                name: '🎁 Prize',
-                                value: giveaway.prize || 'Mystery Prize!',
+                                name: '🎁 Gewinn',
+                                value: giveaway.prize || 'Geheimnisvoller Preis!',
                                 inline: true
                             },
                             {
-                                name: '🏆 New Winners',
+                                name: '🏆 Neue Gewinner',
                                 value: winnerMentions,
                                 inline: false
                             },
                             {
-                                name: '👥 Total Entries',
+                                name: '👥 Teilnahmen gesamt',
                                 value: participants.length.toString(),
                                 inline: true
                             }
@@ -292,8 +292,8 @@ export default {
             return InteractionHelper.safeReply(interaction, {
                 embeds: [
                     successEmbed(
-                        "Reroll Successful ✅",
-                        `Successfully rerolled the giveaway for **${giveaway.prize}** in ${channel}. Selected ${newWinners.length} new winner(s).`,
+                        "Neu-Auslosung erfolgreich ✅",
+                        `Das Gewinnspiel für **${giveaway.prize}** in ${channel} wurde erfolgreich neu ausgelost. Es wurden ${newWinners.length} neue Gewinner ausgewählt.`,
                     ),
                 ],
                 flags: MessageFlags.Ephemeral,
@@ -309,6 +309,3 @@ export default {
         }
     },
 };
-
-
-
