@@ -10,25 +10,25 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 import { logger } from '../../utils/logger.js';
 
 function pill(enabled) {
-    return enabled ? '✅ On' : '❌ Off';
+    return enabled ? '✅ An' : '❌ Aus';
 }
 
 async function formatChannelMention(guild, id) {
-    if (!id) return '`Not configured`';
+    if (!id) return '`Nicht konfiguriert`';
     const channel = guild.channels.cache.get(id) ?? await guild.channels.fetch(id).catch(() => null);
-    return channel ? channel.toString() : `⚠️ Missing (${id})`;
+    return channel ? channel.toString() : `⚠️ Fehlt (${id})`;
 }
 
 function formatRoleMention(guild, id) {
-    if (!id) return '`Not configured`';
+    if (!id) return '`Nicht konfiguriert`';
     const role = guild.roles.cache.get(id);
-    return role ? role.toString() : `⚠️ Missing (${id})`;
+    return role ? role.toString() : `⚠️ Fehlt (${id})`;
 }
 
 export default {
     data: new SlashCommandBuilder()
         .setName('overview')
-        .setDescription('Read-only snapshot of all server system statuses.')
+        .setDescription('Schreibgeschützter Schnappschuss aller Serversystem-Status.')
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .setDMPermission(false),
 
@@ -50,7 +50,7 @@ export default {
             const autoVerifyEnabled = Boolean(guildConfig.verification?.autoVerify?.enabled);
             const autoRoleId = guildConfig.autoRole || welcomeConfig?.roleIds?.[0];
 
-            // ── Channels ──────────────────────────────────────────────────────
+            // ── Kanäle ──────────────────────────────────────────────────────
             const [auditChannel, lifecycleChannel, transcriptChannel, reportChannel, birthdayChannel] =
                 await Promise.all([
                     formatChannelMention(interaction.guild, loggingStatus.channelId || guildConfig.logging?.channelId || guildConfig.logChannelId),
@@ -61,54 +61,54 @@ export default {
                 ]);
 
             const embed = new EmbedBuilder()
-                .setTitle('🖥️ System Overview')
-                .setDescription(`Read-only snapshot for **${interaction.guild.name}**. Use the relevant command's dashboard to make changes.`)
+                .setTitle('🖥️ Systemübersicht')
+                .setDescription(`Schreibgeschützter Schnappschuss für **${interaction.guild.name}**. Nutze das Dashboard des jeweiligen Befehls, um Änderungen vorzunehmen.`)
                 .setColor(getColor('primary'))
                 .addFields(
-                    // ── Core systems ──
+                    // ── Kernsysteme ──
                     {
-                        name: '⚙️ Core Systems',
+                        name: '⚙️ Kernsysteme',
                         value: [
-                            `🧾 **Audit Logging** — ${pill(Boolean(loggingStatus.enabled))}`,
-                            `📈 **Leveling** — ${pill(Boolean(levelingConfig?.enabled))}`,
-                            `👋 **Welcome** — ${pill(Boolean(welcomeConfig?.enabled))}`,
-                            `👋 **Goodbye** — ${pill(Boolean(welcomeConfig?.goodbyeEnabled))}`,
-                            `🎂 **Birthdays** — ${pill(Boolean(guildConfig.birthdayChannelId))}`,
-                            `📋 **Applications** — ${pill(Boolean(applicationConfig?.enabled))}`,
-                            `✅ **Verification** — ${pill(verificationEnabled)}`,
-                            `🤖 **Auto-Verify** — ${pill(autoVerifyEnabled)}`,
+                            `🧾 **Audit-Protokoll** — ${pill(Boolean(loggingStatus.enabled))}`,
+                            `📈 **Level-System** — ${pill(Boolean(levelingConfig?.enabled))}`,
+                            `👋 **Willkommen** — ${pill(Boolean(welcomeConfig?.enabled))}`,
+                            `👋 **Abschied** — ${pill(Boolean(welcomeConfig?.goodbyeEnabled))}`,
+                            `🎂 **Geburtstage** — ${pill(Boolean(guildConfig.birthdayChannelId))}`,
+                            `📋 **Bewerbungen** — ${pill(Boolean(applicationConfig?.enabled))}`,
+                            `✅ **Verifizierung** — ${pill(verificationEnabled)}`,
+                            `🤖 **Auto-Verifizierung** — ${pill(autoVerifyEnabled)}`,
                             `🎧 **Join to Create** — ${pill(Boolean(joinToCreateConfig?.enabled))}`,
-                            `🛡️ **Auto Role** — ${autoRoleId ? `✅ ${formatRoleMention(interaction.guild, autoRoleId)}` : '❌ Off'}`,
+                            `🛡️ **Auto-Rolle** — ${autoRoleId ? `✅ ${formatRoleMention(interaction.guild, autoRoleId)}` : '❌ Aus'}`,
                         ].join('\n'),
                         inline: false,
                     },
-                    // ── Channels ──
+                    // ── Kanäle ──
                     {
-                        name: '📡 Configured Channels',
+                        name: '📡 Konfigurierte Kanäle',
                         value: [
-                            `**Audit Log:** ${auditChannel}`,
-                            `**Ticket Lifecycle:** ${lifecycleChannel}`,
-                            `**Ticket Transcripts:** ${transcriptChannel}`,
-                            `**Reports:** ${reportChannel}`,
-                            `**Birthdays:** ${birthdayChannel}`,
+                            `**Audit-Log:** ${auditChannel}`,
+                            `**Ticket-Lebenszyklus:** ${lifecycleChannel}`,
+                            `**Ticket-Transkripte:** ${transcriptChannel}`,
+                            `**Meldungen:** ${reportChannel}`,
+                            `**Geburtstage:** ${birthdayChannel}`,
                         ].join('\n'),
                         inline: false,
                     },
-                    // ── Refresh stamp ──
+                    // ── Zeitstempel ──
                     {
-                        name: '🕒 Snapshot Taken',
+                        name: '🕒 Erstellter Schnappschuss',
                         value: `<t:${Math.floor(Date.now() / 1000)}:R>`,
                         inline: true,
                     },
                 )
-                .setFooter({ text: 'Read-only — run /logging dashboard to manage audit settings' })
+                .setFooter({ text: 'Schreibgeschützt — Führe /logging dashboard aus, um die Audit-Einstellungen zu verwalten' })
                 .setTimestamp();
 
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
         } catch (error) {
             logger.error('overview command error:', error);
             await InteractionHelper.safeEditReply(interaction, {
-                embeds: [errorEmbed('Overview Error', 'Failed to load the system overview.')],
+                embeds: [errorEmbed('Übersichtsfehler', 'Die Systemübersicht konnte nicht geladen werden.')],
             });
         }
     },
