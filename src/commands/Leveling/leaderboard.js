@@ -1,8 +1,3 @@
-
-
-
-
-
 import { SlashCommandBuilder, EmbedBuilder, MessageFlags } from 'discord.js';
 import { logger } from '../../utils/logger.js';
 import { handleInteractionError, TitanBotError, ErrorTypes } from '../../utils/errorHandler.js';
@@ -12,15 +7,9 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
   data: new SlashCommandBuilder()
     .setName('leaderboard')
-    .setDescription("Shows the server's level leaderboard")
+    .setDescription('Zeigt die Level-Rangliste des Servers an')
     .setDMPermission(false),
   category: 'Leveling',
-
-  
-
-
-
-
 
   async execute(interaction, config, client) {
     try {
@@ -33,7 +22,7 @@ export default {
           embeds: [
             new EmbedBuilder()
               .setColor('#f1c40f')
-              .setDescription('The leveling system is currently disabled on this server.')
+              .setDescription('Das Level-System ist auf diesem Server zurzeit deaktiviert.')
           ],
           flags: MessageFlags.Ephemeral
         });
@@ -46,14 +35,14 @@ export default {
         throw new TitanBotError(
           'No leaderboard data found',
           ErrorTypes.DATABASE,
-          'No level data found yet. Start chatting to gain XP!'
+          'Es wurden noch keine Level-Daten gefunden. Schreibe in den Chats, um XP zu sammeln!'
         );
       }
 
       const embed = new EmbedBuilder()
-        .setTitle('🏆 Level Leaderboard')
+        .setTitle('🏆 Level-Rangliste')
         .setColor('#2ecc71')
-        .setDescription("Top 10 most active members in this server:")
+        .setDescription('Die 10 aktivsten Mitglieder auf diesem Server:')
         .setTimestamp();
 
       const leaderboardText = await Promise.all(
@@ -71,13 +60,13 @@ export default {
 
             return `${rankPrefix} ${userMention} - Level ${user.level} (${user.xp}/${xpForNextLevel} XP)`;
           } catch {
-            return `**${index + 1}.** Error loading user ${user.userId}`;
+            return `**${index + 1}.** Fehler beim Laden von Benutzer ${user.userId}`;
           }
         })
       );
 
       embed.addFields({
-        name: 'Rankings',
+        name: 'Platzierungen',
         value: leaderboardText.join('\n')
       });
 
@@ -92,6 +81,3 @@ export default {
     }
   }
 };
-
-
-
