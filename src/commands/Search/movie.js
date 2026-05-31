@@ -8,28 +8,27 @@ import { getGuildConfig } from '../../services/guildConfig.js';
 import { getColor } from '../../config/bot.js';
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY || '4e44d9029b1270a757cddc766a1bcb63';
-    "4e44d9029b1270a757cddc766a1bcb63";
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 const MAX_RESULTS = 5;
 
 export default {
     data: new SlashCommandBuilder()
         .setName("movie")
-        .setDescription("Search for a movie or TV show")
+        .setDescription("Sucht nach einem Film oder einer Serie")
         .addStringOption((option) =>
             option
                 .setName("title")
-                .setDescription("The title of the movie or TV show")
+                .setDescription("Der Titel des Films oder der Serie")
                 .setRequired(true)
                 .setMaxLength(100),
         )
         .addStringOption((option) =>
             option
                 .setName("type")
-                .setDescription("Type of content to search for")
+                .setDescription("Art des Inhalts, nach dem gesucht werden soll")
                 .addChoices(
-                    { name: "Movie", value: "movie" },
-                    { name: "TV Show", value: "tv" },
+                    { name: "Film", value: "movie" },
+                    { name: "Serie", value: "tv" },
                 )
                 .setRequired(false),
         ),
@@ -54,8 +53,8 @@ export default {
                 return await InteractionHelper.safeEditReply(interaction, {
                     embeds: [
                         errorEmbed(
-                            "Command Disabled",
-                            "The movie/TV show search command is disabled in this server.",
+                            "Befehl deaktiviert",
+                            "Der Suchbefehl für Filme/Serien ist auf diesem Server deaktiviert.",
                         ),
                     ],
                     flags: MessageFlags.Ephemeral,
@@ -70,8 +69,8 @@ export default {
                 return await InteractionHelper.safeEditReply(interaction, {
                     embeds: [
                         errorEmbed(
-                            "Configuration Error",
-                            "Movie/TV show search is not properly configured.",
+                            "Konfigurationsfehler",
+                            "Die Film-/Seriensuche ist nicht ordnungsgemäß konfiguriert.",
                         ),
                     ],
                     flags: MessageFlags.Ephemeral,
@@ -97,11 +96,11 @@ export default {
                         include_adult: guildConfig?.allowNsfwContent
                             ? undefined
                             : false,
-                        language: guildConfig?.language || "en-US",
+                        language: guildConfig?.language || "de-DE",
                         page: 1,
-                        region: guildConfig?.region || "US",
+                        region: guildConfig?.region || "DE",
                     },
-timeout: 8000,
+                    timeout: 8000,
                 },
             );
 
@@ -109,16 +108,16 @@ timeout: 8000,
                 return await InteractionHelper.safeEditReply(interaction, {
                     embeds: [
                         errorEmbed(
-                            "Not Found",
-                            `No ${type === "movie" ? "movies" : "TV shows"} found for "${title}".`,
+                            "Nicht gefunden",
+                            `Keine ${type === "movie" ? "Filme" : "Serien"} für "${title}" gefunden.`,
                         ),
                     ],
                 });
             }
 
             const result = searchResponse.data.results[0];
-            const mediaType = type === "movie" ? "Movie" : "TV Show";
-            const mediaTitle = result.title || result.name || "Unknown Title";
+            const mediaType = type === "movie" ? "Film" : "Serie";
+            const mediaTitle = result.title || result.name || "Unbekannter Titel";
             const releaseDate = result.release_date || result.first_air_date;
             const year = releaseDate
                 ? new Date(releaseDate).getFullYear()
@@ -129,7 +128,7 @@ timeout: 8000,
                 {
                     params: {
                         api_key: TMDB_API_KEY,
-                        language: guildConfig?.language || "en-US",
+                        language: guildConfig?.language || "de-DE",
                         append_to_response:
                             "credits,release_dates,content_ratings",
                     },
@@ -141,22 +140,36 @@ timeout: 8000,
             const runtime = details.runtime
                 ? `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}m`
                 : details.episode_run_time?.[0]
-                  ? `${details.episode_run_time[0]}m per episode`
+                  ? `${details.episode_run_time[0]}m pro Episode`
                   : "N/A";
 
             let contentRating = "N/A";
             if (type === "movie") {
+                // Suche nach deutscher Altersfreigabe (FSK), ansonsten Fallback auf US
+                const deCert = details.release_dates?.results?.find(
+                    (r) => r.iso_3166_1 === "DE",
+                );
                 const usCert = details.release_dates?.results?.find(
                     (r) => r.iso_3166_1 === "US",
                 );
-                if (usCert?.release_dates?.[0]?.certification) {
+                
+                if (deCert?.release_dates?.[0]?.certification) {
+                    contentRating = `FSK ${deCert.release_dates[0].certification}`;
+                } else if (usCert?.release_dates?.[0]?.certification) {
                     contentRating = usCert.release_dates[0].certification;
                 }
             } else {
+                // TV-Altersfreigaben
+                const deCert = details.content_ratings?.results?.find(
+                    (r) => r.iso_3166_1 === "DE",
+                );
                 const usCert = details.content_ratings?.results?.find(
                     (r) => r.iso_3166_1 === "US",
                 );
-                if (usCert?.rating) {
+
+                if (deCert?.rating) {
+                    contentRating = deCert.rating;
+                } else if (usCert?.rating) {
                     contentRating = usCert.rating;
                 }
             }
@@ -172,7 +185,7 @@ timeout: 8000,
 
             const embed = createEmbed({
                 title: `${mediaTitle} (${year})`,
-                description: details.overview || "No overview available.",
+                description: details.overview || "Keine Übersicht verfügbar.",
                 color: 'info'
             })
                 .setURL(`https://www.themoviedb.org/${type}/${result.id}`)
@@ -182,32 +195,32 @@ timeout: 8000,
                         : null,
                 )
                 .addFields(
-                    { name: "Type", value: mediaType, inline: true },
+                    { name: "Typ", value: mediaType, inline: true },
                     {
-                        name: "Rating",
+                        name: "Bewertung",
                         value: result.vote_average
-                            ? `⭐ ${result.vote_average.toFixed(1)}/10 (${result.vote_count.toLocaleString()} votes)`
+                            ? `⭐ ${result.vote_average.toFixed(1)}/10 (${result.vote_count.toLocaleString('de-DE')} Bewertungen)`
                             : "N/A",
                         inline: true,
                     },
                     {
-                        name: "Content Rating",
+                        name: "Altersfreigabe",
                         value: contentRating,
                         inline: true,
                     },
-                    { name: "Runtime", value: runtime, inline: true },
+                    { name: "Spieldauer", value: runtime, inline: true },
                     {
-                        name: "Release Date",
+                        name: "Veröffentlichung",
                         value: releaseDate
-                            ? new Date(releaseDate).toLocaleDateString()
+                            ? new Date(releaseDate).toLocaleDateString('de-DE')
                             : "N/A",
                         inline: true,
                     },
                     { name: "Genres", value: genres, inline: true },
-                    { name: "Cast", value: cast, inline: false },
+                    { name: "Besetzung", value: cast, inline: false },
                 )
                 .setFooter({
-                    text: "Powered by The Movie Database",
+                    text: "Unterstützt von The Movie Database",
                     iconURL:
                         "https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_1-5bdc75aaebeb75dc7ae79426ddd9be3b2be1e342510f8202baf6bffa71d7f5c4.svg",
                 });
@@ -238,14 +251,13 @@ timeout: 8000,
                 commandName: 'movie'
             });
 
-            
             if (error.response?.status === 404) {
                 await InteractionHelper.safeEditReply(interaction, {
-                    embeds: [errorEmbed('Not Found', 'The requested movie/TV show could not be found.')]
+                    embeds: [errorEmbed('Nicht gefunden', 'Der angeforderte Film / die angeforderte Serie konnte nicht gefunden werden.')]
                 });
             } else if (error.response?.status === 401) {
                 await InteractionHelper.safeEditReply(interaction, {
-                    embeds: [errorEmbed('Configuration Error', 'Invalid TMDB API key. Please contact the bot administrator.')],
+                    embeds: [errorEmbed('Konfigurationsfehler', 'Ungültiger TMDB-API-Key. Bitte kontaktiere den Bot-Administrator.')],
                     flags: MessageFlags.Ephemeral
                 });
             } else {
@@ -257,5 +269,3 @@ timeout: 8000,
         }
     },
 };
-
-
