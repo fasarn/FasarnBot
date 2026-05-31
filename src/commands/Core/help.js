@@ -1,4 +1,4 @@
-﻿import {
+import {
     SlashCommandBuilder,
     ActionRowBuilder,
     ButtonBuilder,
@@ -40,10 +40,6 @@ const CATEGORY_ICONS = {
     Config: "⚙️",
 };
 
-
-
-
-
 export async function createInitialHelpMenu(client) {
     const commandsPath = path.join(__dirname, "../../commands");
     const categoryDirs = (
@@ -55,8 +51,8 @@ export async function createInitialHelpMenu(client) {
 
     const options = [
         {
-            label: "📋 All Commands",
-            description: "View all available commands with pagination",
+            label: "📋 Alle Befehle",
+            description: "Zeige alle verfügbaren Befehle seitenweise an",
             value: ALL_COMMANDS_ID,
         },
         ...categoryDirs.map((category) => {
@@ -66,7 +62,7 @@ export async function createInitialHelpMenu(client) {
             const icon = CATEGORY_ICONS[categoryName] || "🔍";
             return {
                 label: `${icon} ${categoryName}`,
-                description: `View commands in the ${categoryName} category`,
+                description: `Befehle aus der Kategorie ${categoryName} anzeigen`,
                 value: category,
             };
         }),
@@ -74,112 +70,112 @@ export async function createInitialHelpMenu(client) {
 
     const botName = client?.user?.username || "Bot";
     const embed = createEmbed({ 
-        title: `🤖 ${botName} Help Center`,
-        description: "Your all-in-one Discord companion for moderation, economy, fun, and server management.",
+        title: `🤖 ${botName} Hilfe-Center`,
+        description: "Dein All-in-One Discord-Begleiter für Moderation, Wirtschaft, Spaß und Serververwaltung.",
         color: 'primary'
     });
 
     embed.addFields(
         {
             name: "🛡️ **Moderation**",
-            value: "Server moderation, user management, and enforcement tools",
+            value: "Servermoderation, Benutzerverwaltung und Werkzeuge zur Durchsetzung von Regeln",
             inline: true
         },
         {
-            name: "💰 **Economy**",
-            value: "Currency system, shops, and virtual economy",
+            name: "💰 **Wirtschaft**",
+            value: "Währungssystem, Shops und virtuelle Wirtschaft",
             inline: true
         },
         {
-            name: "🎮 **Fun**",
-            value: "Games, entertainment, and interactive commands",
+            name: "🎮 **Spaß**",
+            value: "Spiele, Unterhaltung und interaktive Befehle",
             inline: true
         },
         {
-            name: "📊 **Leveling**",
-            value: "User levels, XP system, and progression tracking",
+            name: "📊 **Level-System**",
+            value: "Benutzer-Level, XP-System und Fortschrittsverfolgung",
             inline: true
         },
         {
             name: "🎫 **Tickets**",
-            value: "Support ticket system for server management",
+            value: "Support-Ticket-System für die Serververwaltung",
             inline: true
         },
         {
             name: "🎉 **Giveaways**",
-            value: "Automated giveaway management and distribution",
+            value: "Automatisierte Verwaltung und Verteilung von Verlosungen",
             inline: true
         },
         {
-            name: "👋 **Welcome**",
-            value: "Member welcome messages and onboarding",
+            name: "👋 **Willkommen**",
+            value: "Willkommensnachrichten für Mitglieder und Onboarding",
             inline: true
         },
         {
-            name: "🎂 **Birthdays**",
-            value: "Birthday tracking and celebration features",
+            name: "🎂 **Geburtstage**",
+            value: "Geburtstagsverfolgung und Feierfunktionen",
             inline: true
         },
         {
             name: "👥 **Community**",
-            value: "Community tools, applications, and member engagement",
+            value: "Community-Tools, Bewerbungen und Mitglieder-Engagement",
             inline: true
         },
         {
-            name: "⚙️ **Config**",
-            value: "Server and bot configuration management commands",
+            name: "⚙️ **Konfiguration**",
+            value: "Befehle zur Verwaltung der Server- und Bot-Konfiguration",
             inline: true
         },
         {
-            name: "🔢 **Counter**",
-            value: "Live counter channel setup and counter controls",
+            name: "🔢 **Zähler**",
+            value: "Einrichtung von Live-Zählerkanälen und Zählersteuerung",
             inline: true
         },
         {
             name: "🎙️ **Join to Create**",
-            value: "Dynamic voice channel creation and management",
+            value: "Dynamische Erstellung und Verwaltung von Sprachkanälen",
             inline: true
         },
         {
-            name: "🎭 **Reaction Roles**",
-            value: "Self-assignable roles using reaction-role systems",
+            name: "🎭 **Reaktions-Rollen**",
+            value: "Selbstzuweisbare Rollen über Reaktions-Rollen-Systeme",
             inline: true
         },
         {
-            name: "✅ **Verification**",
-            value: "Member verification workflows and access gating",
+            name: "✅ **Verifizierung**",
+            value: "Abläufe zur Mitgliederverifizierung und Zugriffsbeschränkung",
             inline: true
         },
         {
-            name: "🔧 **Utilities**",
-            value: "Useful tools and server utilities",
+            name: "🔧 **Nützliches**",
+            value: "Praktische Werkzeuge und Server-Utilities",
             inline: true
         }
     );
 
     embed.setFooter({ 
-        text: "Made with ❤️" 
+        text: "Erstellt mit ❤️" 
     });
     embed.setTimestamp();
 
     const bugReportButton = new ButtonBuilder()
         .setCustomId(BUG_REPORT_BUTTON_ID)
-        .setLabel("Report Bug")
+        .setLabel("Fehler melden")
         .setStyle(ButtonStyle.Danger);
 
     const supportButton = new ButtonBuilder()
-        .setLabel("Support Server")
+        .setLabel("Support-Server")
         .setURL("https://discord.gg/QnWNz2dKCE")
         .setStyle(ButtonStyle.Link);
 
     const touchpointButton = new ButtonBuilder()
-        .setLabel("Learn from Touchpoint")
+        .setLabel("Von Touchpoint lernen")
         .setURL("https://www.youtube.com/@TouchDisc")
         .setStyle(ButtonStyle.Link);
 
     const selectRow = createSelectMenu(
         CATEGORY_SELECT_ID,
-        "Select to view the commands",
+        "Wähle eine Option, um die Befehle zu sehen",
         options,
     );
 
@@ -198,7 +194,7 @@ export async function createInitialHelpMenu(client) {
 export default {
     data: new SlashCommandBuilder()
         .setName("help")
-        .setDescription("Displays the help menu with all available commands"),
+        .setDescription("Zeigt das Hilfe-Menü mit allen verfügbaren Befehlen an"),
 
     async execute(interaction, guildConfig, client) {
         
@@ -215,8 +211,8 @@ export default {
         setTimeout(async () => {
             try {
                 const closedEmbed = createEmbed({
-                    title: "Help menu closed",
-                    description: "Help menu has been closed, use /help again.",
+                    title: "Hilfe-Menü geschlossen",
+                    description: "Das Hilfe-Menü wurde geschlossen. Nutze `/help` erneut.",
                     color: "secondary",
                 });
 
@@ -230,5 +226,3 @@ export default {
         }, HELP_MENU_TIMEOUT_MS);
     },
 };
-
-
