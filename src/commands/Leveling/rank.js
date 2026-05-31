@@ -1,8 +1,3 @@
-
-
-
-
-
 import { SlashCommandBuilder, EmbedBuilder, MessageFlags } from 'discord.js';
 import { logger } from '../../utils/logger.js';
 import { handleInteractionError, TitanBotError, ErrorTypes } from '../../utils/errorHandler.js';
@@ -12,21 +7,15 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
   data: new SlashCommandBuilder()
     .setName('rank')
-    .setDescription("Check your or another user's rank and level")
+    .setDescription('Überprüfe deinen Rang und dein Level oder das eines anderen Benutzers')
     .addUserOption((option) =>
       option
         .setName('user')
-        .setDescription('The user to check the rank of')
+        .setDescription('Der Benutzer, dessen Rang überprüft werden soll')
         .setRequired(false)
     )
     .setDMPermission(false),
   category: 'Leveling',
-
-  
-
-
-
-
 
   async execute(interaction, config, client) {
     try {
@@ -38,7 +27,7 @@ export default {
           embeds: [
             new EmbedBuilder()
               .setColor('#f1c40f')
-              .setDescription('The leveling system is currently disabled on this server.')
+              .setDescription('Das Level-System ist auf diesem Server zurzeit deaktiviert.')
           ],
           flags: MessageFlags.Ephemeral
         });
@@ -54,7 +43,7 @@ export default {
         throw new TitanBotError(
           `User ${targetUser.id} not found in guild`,
           ErrorTypes.USER_INPUT,
-          'Could not find the specified user in this server.'
+          'Der angegebene Benutzer konnte auf diesem Server nicht gefunden werden.'
         );
       }
 
@@ -71,7 +60,7 @@ export default {
       const progressBar = createProgressBar(progress, 20);
 
       const embed = new EmbedBuilder()
-        .setTitle(`${member.displayName}'s Rank`)
+        .setTitle(`Rang von ${member.displayName}`)
         .setThumbnail(member.displayAvatarURL({ dynamic: true }))
         .addFields(
           {
@@ -85,12 +74,12 @@ export default {
             inline: true
           },
           {
-            name: '✨ Total XP',
+            name: '✨ Gesamte XP',
             value: safeUserData.totalXp.toString(),
             inline: true
           },
           {
-            name: `Progress to Level ${safeUserData.level + 1}`,
+            name: `Fortschritt bis Level ${safeUserData.level + 1}`,
             value: `${progressBar} ${progress}%`
           }
         )
@@ -109,12 +98,6 @@ export default {
   }
 };
 
-
-
-
-
-
-
 function createProgressBar(percentage, length = 10) {
   if (percentage < 0 || percentage > 100) {
     percentage = Math.max(0, Math.min(100, percentage));
@@ -122,6 +105,3 @@ function createProgressBar(percentage, length = 10) {
   const filled = Math.round((percentage / 100) * length);
   return '█'.repeat(filled) + '░'.repeat(length - filled);
 }
-
-
-
