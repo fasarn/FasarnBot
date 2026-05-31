@@ -9,10 +9,10 @@ import { getColor } from '../../config/bot.js';
 export default {
     data: new SlashCommandBuilder()
         .setName('define')
-        .setDescription('Look up a word definition')
+        .setDescription('Schlägt die Definition eines Wortes nach')
         .addStringOption(option => 
             option.setName('word')
-                .setDescription('The word to look up')
+                .setDescription('Das Wort, das nachgeschlagen werden soll')
                 .setRequired(true)),
     async execute(interaction) {
         try {
@@ -31,7 +31,7 @@ export default {
                     guildId: interaction.guildId
                 });
                 return await InteractionHelper.safeEditReply(interaction, {
-                    embeds: [errorEmbed('Error', 'Please enter a word with at least 2 characters.')],
+                    embeds: [errorEmbed('Fehler', 'Bitte gib ein Wort mit mindestens 2 Zeichen ein.')],
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -43,7 +43,7 @@ export default {
             
             if (!response.data || response.data.length === 0) {
                 return await InteractionHelper.safeEditReply(interaction, {
-                    embeds: [errorEmbed('Not Found', `No definitions found for "${word}".`)]
+                    embeds: [errorEmbed('Nicht gefunden', `Keine Definitionen für "${word}" gefunden.`)]
                 });
             }
             
@@ -60,7 +60,7 @@ export default {
                     .map((def, idx) => {
                         let text = `${idx + 1}. ${def.definition}`;
                         if (def.example) {
-                            text += `\n   *Example: ${def.example}*`;
+                            text += `\n   *Beispiel: ${def.example}*`;
                         }
                         return text;
                     })
@@ -75,7 +75,7 @@ export default {
                 }
             });
             
-            embed.setFooter({ text: 'Powered by Free Dictionary API' });
+            embed.setFooter({ text: 'Unterstützt von Free Dictionary API' });
             
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
             
@@ -96,10 +96,9 @@ export default {
                 commandName: 'define'
             });
             
-            
             if (error.response?.status === 404) {
                 await InteractionHelper.safeEditReply(interaction, {
-                    embeds: [errorEmbed('Not Found', `No definitions found for "${interaction.options.getString('word')}".`)]
+                    embeds: [errorEmbed('Nicht gefunden', `Keine Definitionen für "${interaction.options.getString('word')}" gefunden.`)]
                 });
             } else {
                 await handleInteractionError(interaction, error, {
@@ -110,5 +109,3 @@ export default {
         }
     },
 };
-
-
