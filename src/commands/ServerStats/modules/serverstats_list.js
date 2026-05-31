@@ -4,11 +4,6 @@ import { createEmbed, errorEmbed } from '../../../utils/embeds.js';
 import { getServerCounters, saveServerCounters, getCounterEmoji as getCounterTypeEmoji, getCounterTypeLabel, getGuildCounterStats } from '../../../services/serverstatsService.js';
 import { logger } from '../../../utils/logger.js';
 
-
-
-
-
-
 import { InteractionHelper } from '../../../utils/interactionHelper.js';
 export async function handleList(interaction, client) {
     const guild = interaction.guild;
@@ -24,7 +19,7 @@ export async function handleList(interaction, client) {
     // Check permissions after deferring
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageChannels)) {
         await InteractionHelper.safeEditReply(interaction, { 
-            embeds: [errorEmbed("You need **Manage Channels** permission to view counters.")]
+            embeds: [errorEmbed("Du benötigst die Berechtigung **Kanäle verwalten**, um Tracker anzuzeigen.")]
         }).catch(logger.error);
         return;
     }
@@ -55,25 +50,25 @@ export async function handleList(interaction, client) {
 
         if (validCounters.length === 0) {
             const embed = createEmbed({
-                title: "📋 Server Counters",
-                description: "No counters have been set up for this server yet.\n\nUse `/counter create` to set up your first counter!",
+                title: "📋 Server-Tracker",
+                description: "Für diesen Server wurden noch keine Tracker eingerichtet.\n\nNutze `/serverstats create`, um deinen ersten Tracker zu erstellen!",
                 color: getColor('warning')
             });
 
             embed.addFields({
-                name: "🔧 **Available Counter Types**",
-                value: "👥 **Members + Bots** - Total server members\n👤 **Members Only** - Human members only\n🤖 **Bots Only** - Bot members only",
+                name: "🔧 **Verfügbare Tracker-Typen**",
+                value: "👥 **Mitglieder + Bots** - Gesamte Mitgliederanzahl des Servers\n👤 **Nur Mitglieder** - Nur menschliche Mitglieder\n🤖 **Nur Bots** - Nur Bot-Mitglieder",
                 inline: false
             });
 
             embed.addFields({
-                name: "📝 **Usage Examples**",
-                value: "`/counter create type:members channel_type:voice category:Stats`\n`/counter create type:bots channel_type:text category:Server Info`\n`/counter list`",
+                name: "📝 **Anwendungsbeispiele**",
+                value: "`/serverstats create type:members channel_type:voice category:Statistiken`\n`/serverstats create type:bots channel_type:text category:Server-Info`\n`/serverstats list`",
                 inline: false
             });
 
             embed.setFooter({ 
-                text: "Counter System • Automatic updates every 15 minutes" 
+                text: "Tracker-System • Automatische Aktualisierung alle 15 Minuten" 
             });
 
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed] }).catch(logger.error);
@@ -81,8 +76,8 @@ export async function handleList(interaction, client) {
         }
 
         const embed = createEmbed({
-            title: `📋 Server Counters (${validCounters.length})`,
-            description: "Here are all the active counters for this server.\n\nCounters automatically update every 15 minutes.",
+            title: `📋 Server-Tracker (${validCounters.length})`,
+            description: "Hier sind alle aktiven Tracker für diesen Server.\n\nTracker aktualisieren sich automatisch alle 15 Minuten.",
             color: getColor('info')
         });
 
@@ -97,32 +92,32 @@ export async function handleList(interaction, client) {
             }
 
             const currentCount = getCurrentCount(stats, counter.type);
-            const status = channel.name.includes(':') ? '✅ Active' : '⚠️ Not Updated';
+            const status = channel.name.includes(':') ? '✅ Aktiv' : '⚠️ Nicht aktualisiert';
             
             embed.addFields({
-                name: `${getCounterTypeEmoji(counter.type)} Counter #${i + 1} - ${channel.name}`,
-                value: `**ID:** \`${counter.id}\`\n**Type:** ${getCounterTypeDisplay(counter.type)}\n**Channel:** ${channel}\n**Current Count:** ${currentCount}\n**Status:** ${status}\n**Created:** ${new Date(counter.createdAt).toLocaleDateString()}`,
+                name: `${getCounterTypeEmoji(counter.type)} Tracker #${i + 1} - ${channel.name}`,
+                value: `**ID:** \`${counter.id}\`\n**Typ:** ${getCounterTypeDisplay(counter.type)}\n**Kanal:** ${channel}\n**Aktueller Wert:** ${currentCount}\n**Status:** ${status}\n**Erstellt am:** ${new Date(counter.createdAt).toLocaleDateString('de-DE')}`,
                 inline: false
             });
         }
 
         embed.addFields({
-            name: "📊 **Statistics**",
-            value: `**Total Counters:** ${validCounters.length}\n**Active Counters:** ${validCounters.filter(c => {
+            name: "📊 **Statistiken**",
+            value: `**Tracker gesamt:** ${validCounters.length}\n**Aktive Tracker:** ${validCounters.filter(c => {
                 const channel = guild.channels.cache.get(c.channelId);
                 return channel && channel.name.includes(':');
-            }).length}\n**Next Update:** <t:${Math.floor(Date.now() / 1000) + 900}:R>`,
+            }).length}\n**Nächste Aktualisierung:** <t:${Math.floor(Date.now() / 1000) + 900}:R>`,
             inline: false
         });
 
         embed.addFields({
-            name: "🔧 **Management Commands**",
-            value: "`/counter create` - Create new counter\n`/counter update` - Update existing counter\n`/counter delete` - Delete counter",
+            name: "🔧 **Verwaltungsbefehle**",
+            value: "`/serverstats create` - Neuen Tracker erstellen\n`/serverstats update` - Bestehenden Tracker aktualisieren\n`/serverstats delete` - Tracker löschen",
             inline: false
         });
 
         embed.setFooter({ 
-            text: "Counter System • Automatic updates every 15 minutes" 
+            text: "Tracker-System • Automatische Aktualisierung alle 15 Minuten" 
         });
         embed.setTimestamp();
 
@@ -131,34 +126,18 @@ export async function handleList(interaction, client) {
     } catch (error) {
         logger.error("Error displaying counters:", error);
         await InteractionHelper.safeEditReply(interaction, {
-            embeds: [errorEmbed("An error occurred while fetching counters. Please try again.")]
+            embeds: [errorEmbed("Beim Abrufen der Tracker ist ein Fehler aufgetreten. Bitte versuche es erneut.")]
         }).catch(logger.error);
     }
 }
-
-
-
-
-
 
 function getCounterTypeDisplay(type) {
     return `${getCounterTypeEmoji(type)} ${getCounterTypeLabel(type)}`;
 }
 
-
-
-
-
-
 function getCounterEmoji(type) {
     return getCounterTypeEmoji(type);
 }
-
-
-
-
-
-
 
 function getCurrentCount(stats, type) {
     switch (type) {
@@ -172,6 +151,3 @@ function getCurrentCount(stats, type) {
             return 0;
     }
 }
-
-
-
