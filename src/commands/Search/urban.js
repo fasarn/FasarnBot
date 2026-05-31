@@ -10,10 +10,10 @@ import { getColor } from '../../config/bot.js';
 export default {
     data: new SlashCommandBuilder()
         .setName('urban')
-        .setDescription('Search Urban Dictionary for definitions')
+        .setDescription('Sucht im Urban Dictionary nach Definitionen')
         .addStringOption(option => 
             option.setName('term')
-                .setDescription('The term to look up on Urban Dictionary')
+                .setDescription('Der Begriff, der im Urban Dictionary nachgeschlagen werden soll')
                 .setRequired(true)),
     
     async execute(interaction) {
@@ -27,7 +27,7 @@ export default {
                     guildId: interaction.guildId
                 });
                 return await InteractionHelper.safeReply(interaction, {
-                    embeds: [errorEmbed('Error', 'Please enter a term with at least 2 characters.')],
+                    embeds: [errorEmbed('Fehler', 'Bitte gib einen Begriff mit mindestens 2 Zeichen ein.')],
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -40,7 +40,7 @@ export default {
                     commandName: 'urban'
                 });
                 return await InteractionHelper.safeReply(interaction, {
-                    embeds: [errorEmbed('Command Disabled', 'The Urban Dictionary command is disabled in this server.')],
+                    embeds: [errorEmbed('Befehl deaktiviert', 'Der Urban Dictionary-Befehl ist auf diesem Server deaktiviert.')],
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -71,7 +71,7 @@ export default {
             
             if (!response.data?.list?.length) {
                 return await InteractionHelper.safeReply(interaction, {
-                    embeds: [errorEmbed('Not Found', `No definitions found for "${term}" on Urban Dictionary.`)]
+                    embeds: [errorEmbed('Nicht gefunden', `Keine Definitionen für "${term}" im Urban Dictionary gefunden.`)]
                 });
             }
             
@@ -80,12 +80,12 @@ export default {
             const cleanExample = definition.example.replace(/\[|\]/g, '');
             
             const formattedDefinition = cleanDefinition
-.replace(/\n\s*\n/g, '\n\n')
+                .replace(/\n\s*\n/g, '\n\n')
                 .slice(0, 2000);
                 
             const formattedExample = cleanExample
                 ? `*"${cleanExample.replace(/\n/g, ' ').slice(0, 500)}..."*`
-                : '*No example provided*';
+                : '*Kein Beispiel angegeben*';
             
             const embed = createEmbed({
                 title: definition.word,
@@ -95,18 +95,18 @@ export default {
             .setURL(definition.permalink)
             .addFields(
                 { 
-                    name: 'Example', 
+                    name: 'Beispiel', 
                     value: formattedExample,
                     inline: false 
                 },
                 { 
-                    name: 'Stats', 
-                    value: `👍 ${definition.thumbs_up.toLocaleString()} • 👎 ${definition.thumbs_down.toLocaleString()}`,
+                    name: 'Statistiken', 
+                    value: `👍 ${definition.thumbs_up.toLocaleString('de-DE')} • 👎 ${definition.thumbs_down.toLocaleString('de-DE')}`,
                     inline: true 
                 },
                 { 
-                    name: 'Author', 
-                    value: definition.author || 'Anonymous',
+                    name: 'Autor', 
+                    value: definition.author || 'Anonym',
                     inline: true 
                 }
             )
@@ -135,14 +135,13 @@ export default {
                 commandName: 'urban'
             });
             
-            
             if (error.response?.status === 404 || !error.response) {
                 await InteractionHelper.safeEditReply(interaction, {
-                    embeds: [errorEmbed('Not Found', `No definitions found for "${interaction.options.getString('term')}" on Urban Dictionary.`)]
+                    embeds: [errorEmbed('Nicht gefunden', `Keine Definitionen für "${interaction.options.getString('term')}" im Urban Dictionary gefunden.`)]
                 });
             } else if (error.response?.status === 429) {
                 await InteractionHelper.safeEditReply(interaction, {
-                    embeds: [errorEmbed('Rate Limited', 'Too many requests to Urban Dictionary. Please try again in a few minutes.')]
+                    embeds: [errorEmbed('Ratenbegrenzung', 'Zu viele Anfragen an das Urban Dictionary. Bitte versuche es in einigen Minuten erneut.')]
                 });
             } else {
                 await handleInteractionError(interaction, error, {
@@ -153,7 +152,3 @@ export default {
         }
     },
 };
-
-
-
-
