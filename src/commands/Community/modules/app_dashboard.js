@@ -38,75 +38,75 @@ import {
 // ─── Embed & Menu Builders ────────────────────────────────────────────────────
 
 function buildDashboardEmbed(settings, roles, guild) {
-    const logChannel = settings.logChannelId ? `<#${settings.logChannelId}>` : '`Not set`';
+    const logChannel = settings.logChannelId ? `<#${settings.logChannelId}>` : '`Nicht eingerichtet`';
     const managerRoleList =
         settings.managerRoles?.length > 0
             ? settings.managerRoles.map(id => `<@&${id}>`).join(', ')
-            : '`None configured`';
+            : '`Keine konfiguriert`';
     const roleList =
         roles.length > 0
             ? roles.map(r => `<@&${r.roleId}> — ${r.name}`).join('\n')
-            : '`No application roles configured`';
+            : '`Keine Bewerbungsrollen konfiguriert`';
     const questionCount = settings.questions?.length ?? 0;
     const firstQ =
         settings.questions?.[0]
             ? `\`${settings.questions[0].length > 55 ? settings.questions[0].substring(0, 55) + '…' : settings.questions[0]}\``
-            : '`Not set`';
+            : '`Nicht eingerichtet`';
 
     return new EmbedBuilder()
-        .setTitle('📋 Applications Dashboard')
-        .setDescription(`Manage application settings for **${guild.name}**.\nSelect an option below to modify a setting.`)
+        .setTitle('📋 Bewerbungs-Dashboard')
+        .setDescription(`Verwalte die Bewerbungseinstellungen für **${guild.name}**.\nWähle unten eine Option aus, um eine Einstellung zu ändern.`)
         .setColor(getColor('info'))
         .addFields(
-            { name: '⚙️ Application Status', value: settings.enabled ? '✅ Enabled' : '❌ Disabled', inline: true },
-            { name: '📢 Log Channel', value: logChannel, inline: true },
+            { name: '⚙️ Bewerbungsstatus', value: settings.enabled ? '✅ Aktiviert' : '❌ Deaktiviert', inline: true },
+            { name: '📢 Log-Kanal', value: logChannel, inline: true },
             { name: '\u200B', value: '\u200B', inline: true },
-            { name: '🛡️ Manager Roles', value: managerRoleList, inline: false },
-            { name: '📝 Questions', value: `${questionCount} configured — first: ${firstQ}`, inline: false },
-            { name: '🎭 Application Roles', value: roleList, inline: false },
+            { name: '🛡️ Manager-Rollen', value: managerRoleList, inline: false },
+            { name: '📝 Fragen', value: `${questionCount} konfiguriert — Erste: ${firstQ}`, inline: false },
+            { name: '🎭 Bewerbungsrollen', value: roleList, inline: false },
             {
-                name: '🗑️ Retention',
-                value: `Pending: **${settings.pendingApplicationRetentionDays ?? 30}d** · Reviewed: **${settings.reviewedApplicationRetentionDays ?? 14}d**`,
+                name: '🗑️ Aufbewahrungsfrist',
+                value: `Offen: **${settings.pendingApplicationRetentionDays ?? 30} Tage** · Bearbeitet: **${settings.reviewedApplicationRetentionDays ?? 14} Tage**`,
                 inline: false,
             },
         )
-        .setFooter({ text: 'Dashboard closes after 15 minutes of inactivity' })
+        .setFooter({ text: 'Dashboard schließt sich nach 15 Minuten Inaktivität' })
         .setTimestamp();
 }
 
 function buildSelectMenu(guildId) {
     return new StringSelectMenuBuilder()
         .setCustomId(`app_cfg_${guildId}`)
-        .setPlaceholder('Select a setting to configure...')
+        .setPlaceholder('Wähle eine Einstellung zum Konfigurieren...')
         .addOptions(
             new StringSelectMenuOptionBuilder()
-                .setLabel('Log Channel')
-                .setDescription('Set the channel where new applications are logged')
+                .setLabel('Log-Kanal')
+                .setDescription('Lege den Kanal fest, in dem neue Bewerbungen geloggt werden')
                 .setValue('log_channel')
                 .setEmoji('📢'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('Manager Roles')
-                .setDescription('Add or remove a role that can manage applications')
+                .setLabel('Manager-Rollen')
+                .setDescription('Füge eine Rolle hinzu oder entferne sie, die Bewerbungen verwalten darf')
                 .setValue('manager_role')
                 .setEmoji('🛡️'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('Edit Questions')
-                .setDescription('Customise the questions shown on the application form')
+                .setLabel('Fragen bearbeiten')
+                .setDescription('Passe die Fragen an, die im Bewerbungsformular angezeigt werden')
                 .setValue('questions')
                 .setEmoji('📝'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('Add Application Role')
-                .setDescription('Add a role that members can apply for')
+                .setLabel('Bewerbungsrolle hinzufügen')
+                .setDescription('Füge eine Rolle hinzu, für die sich Mitglieder bewerben können')
                 .setValue('role_add')
                 .setEmoji('➕'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('Remove Application Role')
-                .setDescription('Remove a role from the applications list')
+                .setLabel('Bewerbungsrolle entfernen')
+                .setDescription('Entferne eine Rolle aus der Bewerbungsliste')
                 .setValue('role_remove')
                 .setEmoji('➖'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('Retention Period')
-                .setDescription('Set how long pending and reviewed applications are kept')
+                .setLabel('Aufbewahrungsfrist')
+                .setDescription('Lege fest, wie lange offene und bearbeitete Bewerbungen gespeichert werden')
                 .setValue('retention')
                 .setEmoji('🗑️'),
         );
@@ -117,7 +117,7 @@ function buildButtonRow(settings, guildId, disabled = false) {
     return new ActionRowBuilder().addComponents(
         new ButtonBuilder()
             .setCustomId(`app_cfg_toggle_${guildId}`)
-            .setLabel('Applications')
+            .setLabel('Bewerbungssystem')
             .setStyle(systemOn ? ButtonStyle.Success : ButtonStyle.Danger)
             .setDisabled(disabled),
     );
@@ -143,7 +143,7 @@ export default {
         try {
             const guildId = interaction.guild.id;
 
-            // Defer immediately to prevent Discord interaction timeout
+            // Sofort deferren, um einen Discord-Interaktionstimeout zu verhindern
             await InteractionHelper.safeDefer(interaction, { flags: ['Ephemeral'] });
 
             const [settings, roles] = await Promise.all([
@@ -151,7 +151,7 @@ export default {
                 getApplicationRoles(client, guildId),
             ]);
 
-            // Check if application system is completely unconfigured
+            // Überprüfen, ob das Bewerbungssystem komplett unkonfiguriert ist
             const isCompletelyUnconfigured = 
                 !settings.logChannelId && 
                 !settings.enabled && 
@@ -160,39 +160,39 @@ export default {
 
             if (isCompletelyUnconfigured) {
                 throw new TitanBotError(
-                    'Applications system not set up',
+                    'Bewerbungssystem nicht eingerichtet',
                     ErrorTypes.CONFIGURATION,
-                    'The applications system has not been configured yet. Please run `/app-admin setup` to create your first application.',
+                    'Das Bewerbungssystem wurde noch nicht konfiguriert. Bitte führe `/app-admin setup` aus, um deine erste Bewerbung zu erstellen.',
                 );
             }
 
-            // If no application roles exist, show global settings to add one
+            // Wenn keine Bewerbungsrollen existieren, zeige das globale Dashboard an, um eine hinzuzufügen
             if (roles.length === 0) {
                 await showGlobalDashboard(interaction, settings, roles, guildId, client);
                 return;
             }
 
-            // If a specific app was selected via autocomplete, show its dashboard directly
+            // Wenn eine bestimmte App via Autocomplete ausgewählt wurde, zeige direkt deren Dashboard
             if (selectedAppName) {
                 const selectedRole = roles.find(r => r.name.toLowerCase() === selectedAppName.toLowerCase());
                 if (selectedRole) {
                     await showApplicationDashboard(interaction, selectedRole, settings, roles, guildId, client);
                     return;
                 }
-                // If name doesn't match, fall through
+                // Wenn der Name nicht übereinstimmt, fahre fort
             }
 
-            // Default: Show first application if no selection made
+            // Standard: Erste Bewerbung anzeigen, wenn keine Auswahl getroffen wurde
             const defaultRole = roles[0];
             await showApplicationDashboard(interaction, defaultRole, settings, roles, guildId, client);
 
         } catch (error) {
             if (error instanceof TitanBotError) throw error;
-            logger.error('Unexpected error in app_dashboard:', error);
+            logger.error('Unerwarteter Fehler im app_dashboard:', error);
             throw new TitanBotError(
-                `Applications dashboard failed: ${error.message}`,
+                `Bewerbungs-Dashboard fehlgeschlagen: ${error.message}`,
                 ErrorTypes.UNKNOWN,
-                'Failed to open the applications dashboard.',
+                'Das Bewerbungs-Dashboard konnte nicht geöffnet werden.',
             );
         }
     },
@@ -203,20 +203,20 @@ export default {
 async function showApplicationSelector(interaction, roles, settings, guildId, client) {
     const selectMenu = new StringSelectMenuBuilder()
         .setCustomId(`app_select_${guildId}`)
-        .setPlaceholder('Select an application to configure...')
+        .setPlaceholder('Wähle eine Bewerbung zum Konfigurieren...')
         .addOptions(
             roles.map(role =>
                 new StringSelectMenuOptionBuilder()
                     .setLabel(role.name)
-                    .setDescription(`Configure the ${role.name} application`)
+                    .setDescription(`Konfiguriere die Bewerbung für ${role.name}`)
                     .setValue(role.roleId)
                     .setEmoji('📋'),
             ),
         );
 
     const embed = new EmbedBuilder()
-        .setTitle('🎯 Select Application')
-        .setDescription('Choose which application role you want to configure.')
+        .setTitle('🎯 Bewerbung auswählen')
+        .setDescription('Wähle aus, welche Bewerbungsrolle du konfigurieren möchtest.')
         .setColor(getColor('info'));
 
     await InteractionHelper.safeEditReply(interaction, {
@@ -247,7 +247,7 @@ async function showApplicationSelector(interaction, roles, settings, guildId, cl
     collector.on('end', (collected, reason) => {
         if (reason === 'time' && collected.size === 0) {
             InteractionHelper.safeEditReply(interaction, {
-                embeds: [errorEmbed('Timed Out', 'No selection was made. The dashboard has closed.')],
+                embeds: [errorEmbed('Zeitüberschreitung', 'Es wurde keine Auswahl getroffen. Das Dashboard wurde geschlossen.')],
                 components: [],
             }).catch(() => {});
         }
@@ -275,77 +275,77 @@ async function showGlobalDashboard(interaction, settings, roles, guildId, client
 async function showApplicationDashboard(rootInteraction, selectedRole, settings, roles, guildId, client) {
     const roleObj = rootInteraction.guild.roles.cache.get(selectedRole.roleId);
     
-    // Get application-specific settings
+    // Bewerbungsspezifische Einstellungen abrufen
     const appSettings = await getApplicationRoleSettings(client, guildId, selectedRole.roleId);
     const questions = appSettings.questions || settings.questions || [];
     const appLogChannelId = appSettings.logChannelId || settings.logChannelId;
-    const isEnabled = selectedRole.enabled !== false; // Default to true if not specified
+    const isEnabled = selectedRole.enabled !== false; // Standardmäßig true, wenn nicht angegeben
 
-    // Build comprehensive embed
+    // Umfassendes Embed bauen
     const logChannelDisplay = appLogChannelId 
         ? `<#${appLogChannelId}>` 
-        : '`Inherits global log channel`';
+        : '`Erbt globalen Log-Kanal`';
     
     const questionsDisplay = questions.length > 0
         ? questions.map((q, i) => `${i + 1}. \`${q.length > 60 ? q.substring(0, 60) + '…' : q}\``).join('\n')
-        : '`Inherits global questions`';
+        : '`Erbt globale Fragen`';
     
     const managerRolesDisplay = settings.managerRoles && settings.managerRoles.length > 0
         ? settings.managerRoles.map(id => `<@&${id}>`).join(', ')
-        : '`None configured`';
+        : '`Keine konfiguriert`';
 
     const embed = new EmbedBuilder()
-        .setTitle('🎭 Application Dashboard')
-        .setDescription(`Configuration for **${selectedRole.name}**`)
+        .setTitle('🎭 Bewerbungs-Dashboard')
+        .setDescription(`Konfiguration für **${selectedRole.name}**`)
         .setColor(isEnabled ? getColor('success') : getColor('error'))
         .addFields(
             { 
-                name: '🎭 Role', 
+                name: '🎭 Rolle', 
                 value: roleObj ? roleObj.toString() : `<@&${selectedRole.roleId}>`, 
                 inline: true 
             },
             { 
-                name: '⚙️ Application Status', 
-                value: isEnabled ? '✅ **Enabled**' : '❌ **Disabled**', 
+                name: '⚙️ Bewerbungsstatus', 
+                value: isEnabled ? '✅ **Aktiviert**' : '❌ **Deaktiviert**', 
                 inline: true 
             },
             { name: '\u200B', value: '\u200B', inline: true },
             { 
-                name: '📝 Questions', 
+                name: '📝 Fragen', 
                 value: questionsDisplay,
                 inline: false 
             },
             { 
-                name: '📢 Log Channel', 
+                name: '📢 Log-Kanal', 
                 value: logChannelDisplay,
                 inline: true 
             },
             { 
-                name: '🛡️ Manager Roles',
+                name: '🛡️ Manager-Rollen',
                 value: managerRolesDisplay,
                 inline: true 
             },
             { 
-                name: '🗑️ Retention Period',
-                value: `Pending: **${settings.pendingApplicationRetentionDays ?? 30}d** · Reviewed: **${settings.reviewedApplicationRetentionDays ?? 14}d**`,
+                name: '🗑️ Aufbewahrungsfrist',
+                value: `Offen: **${settings.pendingApplicationRetentionDays ?? 30} Tage** · Bearbeitet: **${settings.reviewedApplicationRetentionDays ?? 14} Tage**`,
                 inline: false 
             },
         )
-        .setFooter({ text: 'Dashboard closes after 10 minutes of inactivity' })
+        .setFooter({ text: 'Dashboard schließt sich nach 10 Minuten Inaktivität' })
         .setTimestamp();
 
-    // Create dropdown button with customization options
+    // Dropdown-Menü mit Anpassungsoptionen erstellen
     const configMenu = buildApplicationSelectMenu(guildId, selectedRole.roleId);
 
-    // Create control buttons
+    // Kontroll-Buttons erstellen
     const controlButtons = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
             .setCustomId(`app_toggle_${selectedRole.roleId}`)
-            .setLabel(isEnabled ? 'Disable Application' : 'Enable Application')
+            .setLabel(isEnabled ? 'Bewerbung deaktivieren' : 'Bewerbung aktivieren')
             .setStyle(isEnabled ? ButtonStyle.Danger : ButtonStyle.Success),
         new ButtonBuilder()
             .setCustomId(`app_delete_${selectedRole.roleId}`)
-            .setLabel('Delete Application')
+            .setLabel('Bewerbung löschen')
             .setStyle(ButtonStyle.Danger)
             .setEmoji('🗑️'),
     );
@@ -378,7 +378,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
     collector.on('collect', async selectInteraction => {
         const selectedOption = selectInteraction.values[0];
         try {
-            // Catch expired interactions
+            // Abgelaufene Interaktionen abfangen
             if (!selectInteraction.isStringSelectMenu()) {
                 return;
             }
@@ -404,15 +404,15 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
             }
         } catch (error) {
             if (error instanceof TitanBotError) {
-                logger.debug(`Applications config validation error: ${error.message}`);
+                logger.debug(`Bewerbungskonfiguration Validierungsfehler: ${error.message}`);
             } else {
-                logger.error('Unexpected applications dashboard error:', error);
+                logger.error('Unerwarteter Fehler im Bewerbungs-Dashboard:', error);
             }
 
             const errorMessage =
                 error instanceof TitanBotError
-                    ? error.userMessage || 'An error occurred while processing your selection.'
-                    : 'An unexpected error occurred while updating the configuration.';
+                    ? error.userMessage || 'Ein Fehler ist bei der Verarbeitung deiner Auswahl aufgetreten.'
+                    : 'Ein unerwarteter Fehler ist beim Aktualisieren der Konfiguration aufgetreten.';
 
             if (!selectInteraction.replied && !selectInteraction.deferred) {
                 await safeDeferInteraction(selectInteraction);
@@ -420,7 +420,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
 
             await selectInteraction
                 .followUp({
-                    embeds: [errorEmbed('Configuration Error', errorMessage)],
+                    embeds: [errorEmbed('Konfigurationsfehler', errorMessage)],
                     flags: MessageFlags.Ephemeral,
                 })
                 .catch(() => {});
@@ -430,8 +430,8 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
     collector.on('end', async (collected, reason) => {
         if (reason === 'time') {
             const timeoutEmbed = new EmbedBuilder()
-                .setTitle('\u23f0 Dashboard Timed Out')
-                .setDescription('This dashboard has been closed due to inactivity. Please run the command again to continue.')
+                .setTitle('\u23f0 Dashboard abgelaufen')
+                .setDescription('Dieses Dashboard wurde wegen Inaktivität geschlossen. Bitte führe den Befehl erneut aus, um fortzufahren.')
                 .setColor(getColor('error'));
                 
             await InteractionHelper.safeEditReply(interaction, {
@@ -459,30 +459,30 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
                 const wasEnabled = settings.enabled === true;
                 settings.enabled = !wasEnabled;
 
-                // Save the updated settings
+                // Aktualisierte Einstellungen speichern
                 await saveApplicationSettings(interaction.client, guildId, settings);
 
-                // Refresh dashboard to show new status
+                // Dashboard aktualisieren, um neuen Status anzuzeigen
                 const updatedSettings = await getApplicationSettings(interaction.client, guildId);
                 const updatedRoles = await getApplicationRoles(interaction.client, guildId);
                 await showGlobalDashboard(interaction, updatedSettings, updatedRoles, guildId, interaction.client);
 
                 await toggleInteraction.followUp({
                     embeds: [successEmbed(
-                        wasEnabled ? '🔴 Applications Disabled' : '🟢 Applications Enabled',
-                        `The applications system is now **${wasEnabled ? 'disabled' : 'enabled'}**.\n\n${
+                        wasEnabled ? '🔴 Bewerbungen deaktiviert' : '🟢 Bewerbungen aktiviert',
+                        `Das Bewerbungssystem ist jetzt **${wasEnabled ? 'deaktiviert' : 'aktiviert'}**.\n\n${
                             wasEnabled 
-                                ? 'Members will no longer be able to apply for roles.' 
-                                : 'Members can now start applying for roles.'
+                                ? 'Mitglieder können sich ab jetzt nicht mehr für Rollen bewerben.' 
+                                : 'Mitglieder können ab jetzt Bewerbungen für Rollen einreichen.'
                         }`,
                     )],
                     flags: MessageFlags.Ephemeral,
                 });
 
             } catch (error) {
-                logger.error('Error toggling global application status:', error);
+                logger.error('Fehler beim Umschalten des globalen Bewerbungsstatus:', error);
                 await toggleInteraction.followUp({
-                    embeds: [errorEmbed('Error', 'An error occurred while toggling the application status.')],
+                    embeds: [errorEmbed('Fehler', 'Ein Fehler ist beim Umschalten des Bewerbungsstatus aufgetreten.')],
                     flags: MessageFlags.Ephemeral,
                 });
             }
@@ -491,8 +491,8 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
         globalToggleCollector.on('end', async (collected, reason) => {
             if (reason === 'time') {
                 const timeoutEmbed = new EmbedBuilder()
-                    .setTitle('⏱️ Configuration Timeout')
-                    .setDescription('This dashboard session has timed out due to inactivity (10 minutes).\n\nTo continue configuring your applications, please run the command again.')
+                    .setTitle('⏱️ Konfigurations-Timeout')
+                    .setDescription('Diese Dashboard-Sitzung ist wegen Inaktivität abgelaufen (10 Minuten).\n\nUm deine Bewerbungen weiter zu konfigurieren, führe den Befehl bitte erneut aus.')
                     .setColor(getColor('warning'));
                     
                 await InteractionHelper.safeEditReply(interaction, {
@@ -514,23 +514,23 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
         });
 
         btnCollector.on('collect', async btnInteraction => {
-            // Show confirmation modal
+            // Bestätigungs-Modal anzeigen
             const appRoleForDelete = roles.find(r => r.roleId === selectedRoleId);
-            const appNameForDelete = appRoleForDelete?.name ?? 'this application';
+            const appNameForDelete = appRoleForDelete?.name ?? 'diese Bewerbung';
 
             const confirmModal = new ModalBuilder()
                 .setCustomId('app_delete_confirm')
-                .setTitle('Confirm Application Deletion');
+                .setTitle('Bewerbung löschen bestätigen');
 
             const deleteWarningText = new TextDisplayBuilder()
-                .setContent(`⚠️ You are about to permanently delete **${appNameForDelete}**. All stored applications and settings for this role will be removed and cannot be recovered.`);
+                .setContent(`⚠️ Du bist im Begriff, die Bewerbung für **${appNameForDelete}** unwiderruflich zu löschen. Alle gespeicherten Bewerbungen und Einstellungen für diese Rolle werden entfernt und können nicht wiederhergestellt werden.`);
 
             const deleteCheckbox = new CheckboxBuilder()
                 .setCustomId('confirm_delete')
                 .setDefault(false);
 
             const deleteCheckboxLabel = new LabelBuilder()
-                .setLabel('I confirm — this cannot be undone')
+                .setLabel('Ich bestätige — dies kann nicht rückgängig gemacht werden')
                 .setCheckboxComponent(deleteCheckbox);
 
             confirmModal
@@ -540,9 +540,9 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
             try {
                 await btnInteraction.showModal(confirmModal);
             } catch (error) {
-                logger.error('Error showing delete confirmation modal:', error);
+                logger.error('Fehler beim Anzeigen des Lösch-Bestätigungs-Modals:', error);
                 await btnInteraction.followUp({
-                    embeds: [errorEmbed('Error', 'Failed to show confirmation modal. Please try again.')],
+                    embeds: [errorEmbed('Fehler', 'Das Bestätigungs-Modal konnte nicht angezeigt werden. Bitte versuche es erneut.')],
                     flags: MessageFlags.Ephemeral,
                 }).catch(() => {});
                 return;
@@ -557,7 +557,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
 
                 if (!confirmSubmit) {
                     await btnInteraction.followUp({
-                        embeds: [errorEmbed('Cancelled', 'Application deletion was cancelled.')],
+                        embeds: [errorEmbed('Abgebrochen', 'Das Löschen der Bewerbung wurde abgebrochen.')],
                         flags: MessageFlags.Ephemeral,
                     });
                     return;
@@ -566,21 +566,21 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
                 const confirmed = confirmSubmit.fields.getCheckbox('confirm_delete');
                 if (!confirmed) {
                     await confirmSubmit.reply({
-                        embeds: [errorEmbed('Not Confirmed', 'You must tick the confirmation checkbox to delete the application.')],
+                        embeds: [errorEmbed('Nicht bestätigt', 'Du musst das Kontrollkästchen aktivieren, um die Bewerbung zu löschen.')],
                         flags: MessageFlags.Ephemeral,
                     });
                     return;
                 }
 
-                // Delete the application
+                // Bewerbung löschen
                 await handleDeleteApplication(confirmSubmit, selectedRoleId, guildId, roles, client);
                 collector.stop();
                 btnCollector.stop();
 
             } catch (error) {
-                logger.error('Error confirming application deletion:', error);
+                logger.error('Fehler bei der Bestätigung des Bewerbungslöschens:', error);
                 await btnInteraction.followUp({
-                    embeds: [errorEmbed('Error', 'An error occurred while deleting the application.')],
+                    embeds: [errorEmbed('Fehler', 'Ein Fehler ist beim Löschen der Bewerbung aufgetreten.')],
                     flags: MessageFlags.Ephemeral,
                 });
             }
@@ -589,8 +589,8 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
         btnCollector.on('end', async (collected, reason) => {
             if (reason === 'time') {
                 const timeoutEmbed = new EmbedBuilder()
-                    .setTitle('⏱️ Configuration Timeout')
-                    .setDescription('This dashboard session has timed out due to inactivity (10 minutes).\n\nTo continue configuring your applications, please run the command again.')
+                    .setTitle('⏱️ Konfigurations-Timeout')
+                    .setDescription('Diese Dashboard-Sitzung ist wegen Inaktivität abgelaufen (10 Minuten).\n\nUm deine Bewerbungen weiter zu konfigurieren, führe den Befehl bitte erneut aus.')
                     .setColor(getColor('warning'));
                     
                 await InteractionHelper.safeEditReply(interaction, {
@@ -614,11 +614,11 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
             if (!deferred) return;
             
             try {
-                // Find and toggle the role
+                // Rolle finden und Status umschalten
                 const roleIndex = roles.findIndex(r => r.roleId === selectedRoleId);
                 if (roleIndex === -1) {
                     await toggleInteraction.followUp({
-                        embeds: [errorEmbed('Not Found', 'Application role not found.')],
+                        embeds: [errorEmbed('Nicht gefunden', 'Bewerbungsrolle wurde nicht gefunden.')],
                         flags: MessageFlags.Ephemeral,
                     });
                     return;
@@ -627,30 +627,30 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
                 const wasEnabled = roles[roleIndex].enabled !== false;
                 roles[roleIndex].enabled = !wasEnabled;
 
-                // Save the updated roles
+                // Aktualisierte Rollen speichern
                 await saveApplicationRoles(interaction.client, guildId, roles);
 
-                // Refresh dashboard to show new status
+                // Dashboard aktualisieren, um neuen Status anzuzeigen
                 const updatedRole = roles[roleIndex];
                 const updatedSettings = await getApplicationSettings(interaction.client, guildId);
                 await showApplicationDashboard(interaction, updatedRole, updatedSettings, roles, guildId, interaction.client);
 
                 await toggleInteraction.followUp({
                     embeds: [successEmbed(
-                        wasEnabled ? '🔴 Application Disabled' : '🟢 Application Enabled',
-                        `The **${updatedRole.name}** application is now **${wasEnabled ? 'disabled' : 'enabled'}**.\n\n${
+                        wasEnabled ? '🔴 Bewerbung deaktiviert' : '🟢 Bewerbung aktiviert',
+                        `Die Bewerbung für **${updatedRole.name}** ist jetzt **${wasEnabled ? 'deaktiviert' : 'aktiviert'}**.\n\n${
                             wasEnabled 
-                                ? 'This application will no longer appear in `/apply submit` options.' 
-                                : 'This application will now appear in `/apply submit` options.'
+                                ? 'Diese Bewerbung wird nicht mehr bei den Optionen von `/bewerben absenden` angezeigt.' 
+                                : 'Diese Bewerbung wird ab jetzt bei den Optionen von `/bewerben absenden` angezeigt.'
                         }`,
                     )],
                     flags: MessageFlags.Ephemeral,
                 });
 
             } catch (error) {
-                logger.error('Error toggling application status:', error);
+                logger.error('Fehler beim Umschalten des Bewerbungsstatus:', error);
                 await toggleInteraction.followUp({
-                    embeds: [errorEmbed('Error', 'An error occurred while toggling the application status.')],
+                    embeds: [errorEmbed('Fehler', 'Ein Fehler ist beim Umschalten des Bewerbungsstatus aufgetreten.')],
                     flags: MessageFlags.Ephemeral,
                 });
             }
@@ -659,8 +659,8 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
         toggleCollector.on('end', async (collected, reason) => {
             if (reason === 'time') {
                 const timeoutEmbed = new EmbedBuilder()
-                    .setTitle('⏱️ Configuration Timeout')
-                    .setDescription('This dashboard session has timed out due to inactivity (10 minutes).\n\nTo continue configuring your applications, please run the command again.')
+                    .setTitle('⏱️ Konfigurations-Timeout')
+                    .setDescription('Diese Dashboard-Sitzung ist wegen Inaktivität abgelaufen (10 Minuten).\n\nUm deine Bewerbungen weiter zu konfigurieren, führe den Befehl bitte erneut aus.')
                     .setColor(getColor('warning'));
                     
                 await InteractionHelper.safeEditReply(interaction, {
@@ -677,26 +677,26 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
 function buildApplicationSelectMenu(guildId, roleId) {
     return new StringSelectMenuBuilder()
         .setCustomId(`app_cfg_${roleId}`)
-        .setPlaceholder('Select a setting to configure...')
+        .setPlaceholder('Wähle eine Einstellung zum Konfigurieren...')
         .addOptions(
             new StringSelectMenuOptionBuilder()
-                .setLabel('Log Channel')
-                .setDescription('Set the channel where applications are logged')
+                .setLabel('Log-Kanal')
+                .setDescription('Lege den Kanal fest, in dem Bewerbungen geloggt werden')
                 .setValue('log_channel')
                 .setEmoji('📢'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('Manager Roles')
-                .setDescription('Add or remove a role that can manage applications')
+                .setLabel('Manager-Rollen')
+                .setDescription('Füge eine Rolle hinzu oder entferne sie, die Bewerbungen verwalten darf')
                 .setValue('manager_role')
                 .setEmoji('🛡️'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('Edit Questions')
-                .setDescription('Customise the questions shown on the application form')
+                .setLabel('Fragen bearbeiten')
+                .setDescription('Passe die Fragen an, die im Bewerbungsformular angezeigt werden')
                 .setValue('questions')
                 .setEmoji('📝'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('Retention Period')
-                .setDescription('Set how long pending and reviewed applications are kept')
+                .setLabel('Aufbewahrungsfrist')
+                .setDescription('Lege fest, wie lange offene und bearbeitete Bewerbungen gespeichert werden')
                 .setValue('retention')
                 .setEmoji('🗑️'),
         );
@@ -713,19 +713,19 @@ async function handleLogChannel(selectInteraction, rootInteraction, settings, ro
 
     const modal = new ModalBuilder()
         .setCustomId(`app_cfg_log_channel_modal_${guildId}_${selectedRoleId || 'global'}`)
-        .setTitle('📢 Configure Log Channel');
+        .setTitle('📢 Log-Kanal konfigurieren');
 
     const channelSelect = new ChannelSelectMenuBuilder()
         .setCustomId('log_channel')
-        .setPlaceholder('Select a text channel...')
+        .setPlaceholder('Wähle einen Textkanal aus...')
         .setMinValues(1)
         .setMaxValues(1)
         .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
         .setRequired(true);
 
     const channelLabel = new LabelBuilder()
-        .setLabel('Log Channel')
-        .setDescription('Channel where new applications will be logged')
+        .setLabel('Log-Kanal')
+        .setDescription('Kanal, in dem neue Bewerbungen geloggt werden')
         .setChannelSelectMenuComponent(channelSelect);
 
     modal.addLabelComponents(channelLabel);
@@ -739,482 +739,4 @@ async function handleLogChannel(selectInteraction, rootInteraction, settings, ro
         });
 
         const channelId = modalSubmission.fields.getField('log_channel').values[0];
-        const channel = selectInteraction.guild.channels.cache.get(channelId);
-
-        if (selectedRoleId) {
-            const roleSettings = await getApplicationRoleSettings(client, guildId, selectedRoleId);
-            roleSettings.logChannelId = channelId;
-            await saveApplicationRoleSettings(client, guildId, selectedRoleId, roleSettings);
-        } else {
-            settings.logChannelId = channelId;
-            await saveApplicationSettings(client, guildId, settings);
-        }
-
-        await modalSubmission.reply({
-            embeds: [successEmbed('✅ Log Channel Updated', `Application logs will now be sent to ${channel ?? `<#${channelId}>`}.`)],
-            flags: MessageFlags.Ephemeral,
-        });
-
-        await refreshDashboard(rootInteraction, settings, roles, guildId);
-    } catch (error) {
-        if (error.code === 'INTERACTION_TIMEOUT') return;
-        logger.error('Error in log channel modal:', error);
-        await selectInteraction.followUp({
-            embeds: [errorEmbed('An error occurred while updating the log channel.')],
-            flags: MessageFlags.Ephemeral,
-        });
-    }
-}
-
-// ─── Manager Role ─────────────────────────────────────────────────────────────
-
-async function handleManagerRole(selectInteraction, rootInteraction, settings, roles, guildId, client) {
-    const modal = new ModalBuilder()
-        .setCustomId(`app_cfg_manager_role_modal_${guildId}`)
-        .setTitle('🛡️ Configure Manager Roles');
-
-    const roleSelect = new RoleSelectMenuBuilder()
-        .setCustomId('manager_roles')
-        .setPlaceholder('Select roles to grant manager access...')
-        .setMinValues(1)
-        .setMaxValues(5)
-        .setRequired(true);
-
-    const roleLabel = new LabelBuilder()
-        .setLabel('Manager Roles')
-        .setDescription('Selected roles will be toggled on/off as manager roles')
-        .setRoleSelectMenuComponent(roleSelect);
-
-    modal.addLabelComponents(roleLabel);
-
-    await selectInteraction.showModal(modal);
-
-    try {
-        const modalSubmission = await selectInteraction.awaitModalSubmit({
-            time: 5 * 60 * 1000,
-            filter: i => i.user.id === selectInteraction.user.id && i.customId === `app_cfg_manager_role_modal_${guildId}`,
-        });
-
-        const selectedRoleIds = modalSubmission.fields.getField('manager_roles').values;
-        const roleSet = new Set(settings.managerRoles ?? []);
-
-        for (const roleId of selectedRoleIds) {
-            if (roleSet.has(roleId)) {
-                roleSet.delete(roleId);
-            } else {
-                roleSet.add(roleId);
-            }
-        }
-
-        settings.managerRoles = Array.from(roleSet);
-        await saveApplicationSettings(client, guildId, settings);
-
-        const finalList = settings.managerRoles.length > 0
-            ? settings.managerRoles.map(id => `<@&${id}>`).join(', ')
-            : '`None`';
-
-        await modalSubmission.reply({
-            embeds: [successEmbed('✅ Manager Roles Updated', `Current manager roles: ${finalList}`)],
-            flags: MessageFlags.Ephemeral,
-        });
-
-        await refreshDashboard(rootInteraction, settings, roles, guildId);
-    } catch (error) {
-        if (error.code === 'INTERACTION_TIMEOUT') return;
-        logger.error('Error in manager role modal:', error);
-        await selectInteraction.followUp({
-            embeds: [errorEmbed('An error occurred while updating manager roles.')],
-            flags: MessageFlags.Ephemeral,
-        });
-    }
-}
-
-// ─── Edit Questions ───────────────────────────────────────────────────────────
-
-async function handleQuestions(selectInteraction, rootInteraction, settings, roles, guildId, client, selectedRoleId) {
-    let currentQuestions = settings.questions ?? [];
-    
-    if (selectedRoleId) {
-        const roleSettings = await getApplicationRoleSettings(client, guildId, selectedRoleId);
-        currentQuestions = roleSettings.questions ?? currentQuestions;
-    }
-
-    const modal = new ModalBuilder()
-        .setCustomId('app_cfg_questions')
-        .setTitle('Edit Application Questions')
-        .addComponents(
-            new ActionRowBuilder().addComponents(
-                new TextInputBuilder()
-                    .setCustomId('q1')
-                    .setLabel('Question 1 (required)')
-                    .setStyle(TextInputStyle.Short)
-                    .setValue(currentQuestions[0] ?? '')
-                    .setMaxLength(100)
-                    .setMinLength(1)
-                    .setRequired(true),
-            ),
-            new ActionRowBuilder().addComponents(
-                new TextInputBuilder()
-                    .setCustomId('q2')
-                    .setLabel('Question 2 (optional)')
-                    .setStyle(TextInputStyle.Short)
-                    .setValue(currentQuestions[1] ?? '')
-                    .setMaxLength(100)
-                    .setRequired(false),
-            ),
-            new ActionRowBuilder().addComponents(
-                new TextInputBuilder()
-                    .setCustomId('q3')
-                    .setLabel('Question 3 (optional)')
-                    .setStyle(TextInputStyle.Short)
-                    .setValue(currentQuestions[2] ?? '')
-                    .setMaxLength(100)
-                    .setRequired(false),
-            ),
-            new ActionRowBuilder().addComponents(
-                new TextInputBuilder()
-                    .setCustomId('q4')
-                    .setLabel('Question 4 (optional)')
-                    .setStyle(TextInputStyle.Short)
-                    .setValue(currentQuestions[3] ?? '')
-                    .setMaxLength(100)
-                    .setRequired(false),
-            ),
-            new ActionRowBuilder().addComponents(
-                new TextInputBuilder()
-                    .setCustomId('q5')
-                    .setLabel('Question 5 (optional)')
-                    .setStyle(TextInputStyle.Short)
-                    .setValue(currentQuestions[4] ?? '')
-                    .setMaxLength(100)
-                    .setRequired(false),
-            ),
-        );
-
-    await selectInteraction.showModal(modal);
-
-    const submitted = await selectInteraction
-        .awaitModalSubmit({
-            filter: i =>
-                i.customId === 'app_cfg_questions' && i.user.id === selectInteraction.user.id,
-            time: 120_000,
-        })
-        .catch(() => null);
-
-    if (!submitted) return;
-
-    const newQuestions = ['q1', 'q2', 'q3', 'q4', 'q5']
-        .map(key => submitted.fields.getTextInputValue(key).trim())
-        .filter(Boolean);
-
-    if (newQuestions.length === 0) {
-        await submitted.reply({
-            embeds: [errorEmbed('No Questions', 'At least one question is required.')],
-            flags: MessageFlags.Ephemeral,
-        });
-        return;
-    }
-
-    if (selectedRoleId) {
-        // Save per-application questions
-        const roleSettings = await getApplicationRoleSettings(client, guildId, selectedRoleId);
-        roleSettings.questions = newQuestions;
-        await saveApplicationRoleSettings(client, guildId, selectedRoleId, roleSettings);
-    } else {
-        // Save global questions
-        settings.questions = newQuestions;
-        await saveApplicationSettings(client, guildId, settings);
-    }
-
-    await submitted.reply({
-        embeds: [
-            successEmbed(
-                '✅ Questions Updated',
-                `${newQuestions.length} question${newQuestions.length !== 1 ? 's' : ''} saved.`,
-            ),
-        ],
-        flags: MessageFlags.Ephemeral,
-    });
-
-    await refreshDashboard(rootInteraction, settings, roles, guildId);
-}
-
-// ─── Add Application Role ─────────────────────────────────────────────────────
-
-async function handleRoleAdd(selectInteraction, rootInteraction, settings, roles, guildId, client) {
-    const modal = new ModalBuilder()
-        .setCustomId(`app_cfg_role_add_modal_${guildId}`)
-        .setTitle('➕ Add Application Role');
-
-    const roleSelect = new RoleSelectMenuBuilder()
-        .setCustomId('application_role')
-        .setPlaceholder('Select the role members can apply for...')
-        .setMinValues(1)
-        .setMaxValues(1)
-        .setRequired(true);
-
-    const roleLabel = new LabelBuilder()
-        .setLabel('Application Role')
-        .setDescription('Select the Discord role members will be applying for')
-        .setRoleSelectMenuComponent(roleSelect);
-
-    const nameInput = new TextInputBuilder()
-        .setCustomId('role_name')
-        .setLabel('Display name (leave blank to use role name)')
-        .setStyle(TextInputStyle.Short)
-        .setMaxLength(50)
-        .setRequired(false);
-
-    modal.addLabelComponents(roleLabel);
-    modal.addComponents(new ActionRowBuilder().addComponents(nameInput));
-
-    await selectInteraction.showModal(modal);
-
-    try {
-        const modalSubmission = await selectInteraction.awaitModalSubmit({
-            time: 5 * 60 * 1000,
-            filter: i => i.user.id === selectInteraction.user.id && i.customId === `app_cfg_role_add_modal_${guildId}`,
-        });
-
-        const roleId = modalSubmission.fields.getField('application_role').values[0];
-        const role = selectInteraction.guild.roles.cache.get(roleId);
-        const customName = modalSubmission.fields.getTextInputValue('role_name').trim() || role?.name || roleId;
-
-        if (roles.some(r => r.roleId === roleId)) {
-            await modalSubmission.reply({
-                embeds: [errorEmbed('Already Added', `${role ?? roleId} is already an application role.`)],
-                flags: MessageFlags.Ephemeral,
-            });
-            return;
-        }
-
-        roles.push({ roleId, name: customName });
-        await saveApplicationRoles(client, guildId, roles);
-
-        await modalSubmission.reply({
-            embeds: [successEmbed('✅ Role Added', `${role ?? roleId} added as **${customName}**.`)],
-            flags: MessageFlags.Ephemeral,
-        });
-
-        await refreshDashboard(rootInteraction, settings, roles, guildId);
-    } catch (error) {
-        if (error.code === 'INTERACTION_TIMEOUT') return;
-        logger.error('Error in role add modal:', error);
-        await selectInteraction.followUp({
-            embeds: [errorEmbed('An error occurred while adding the application role.')],
-            flags: MessageFlags.Ephemeral,
-        });
-    }
-}
-
-// ─── Remove Application Role ──────────────────────────────────────────────────
-
-async function handleRoleRemove(selectInteraction, rootInteraction, settings, roles, guildId, client) {
-    if (roles.length === 0) {
-        await selectInteraction.followUp({
-            embeds: [errorEmbed('No Roles', 'There are no application roles configured to remove.')],
-            flags: MessageFlags.Ephemeral,
-        });
-        return;
-    }
-
-    const modal = new ModalBuilder()
-        .setCustomId(`app_cfg_role_remove_modal_${guildId}`)
-        .setTitle('➖ Remove Application Role');
-
-    const roleSelect = new RoleSelectMenuBuilder()
-        .setCustomId('remove_role')
-        .setPlaceholder('Select the role to remove...')
-        .setMinValues(1)
-        .setMaxValues(1)
-        .setRequired(true);
-
-    const roleLabel = new LabelBuilder()
-        .setLabel('Remove Application Role')
-        .setDescription('Select the role to remove from the applications list')
-        .setRoleSelectMenuComponent(roleSelect);
-
-    modal.addLabelComponents(roleLabel);
-
-    await selectInteraction.showModal(modal);
-
-    try {
-        const modalSubmission = await selectInteraction.awaitModalSubmit({
-            time: 5 * 60 * 1000,
-            filter: i => i.user.id === selectInteraction.user.id && i.customId === `app_cfg_role_remove_modal_${guildId}`,
-        });
-
-        const roleId = modalSubmission.fields.getField('remove_role').values[0];
-        const index = roles.findIndex(r => r.roleId === roleId);
-
-        if (index === -1) {
-            await modalSubmission.reply({
-                embeds: [errorEmbed('Not Found', `<@&${roleId}> is not in the application roles list.`)],
-                flags: MessageFlags.Ephemeral,
-            });
-            return;
-        }
-
-        roles.splice(index, 1);
-        await saveApplicationRoles(client, guildId, roles);
-
-        await modalSubmission.reply({
-            embeds: [successEmbed('✅ Role Removed', `<@&${roleId}> has been removed from the application roles.`)],
-            flags: MessageFlags.Ephemeral,
-        });
-
-        await refreshDashboard(rootInteraction, settings, roles, guildId);
-    } catch (error) {
-        if (error.code === 'INTERACTION_TIMEOUT') return;
-        logger.error('Error in role remove modal:', error);
-        await selectInteraction.followUp({
-            embeds: [errorEmbed('An error occurred while removing the application role.')],
-            flags: MessageFlags.Ephemeral,
-        });
-    }
-}
-
-// ─── Retention Period ─────────────────────────────────────────────────────────
-
-async function handleRetention(selectInteraction, rootInteraction, settings, roles, guildId, client) {
-    const modal = new ModalBuilder()
-        .setCustomId('app_cfg_retention')
-        .setTitle('Application Retention Periods');
-
-    const retentionInfo = new TextDisplayBuilder()
-        .setContent(
-            '**Pending** — how long unanswered/in-progress applications are kept before being automatically removed.\n' +
-            '**Reviewed** — how long approved or denied applications are kept.\n' +
-            '-# Enter a whole number between 1 and 3650 (max 10 years).',
-        );
-
-    const pendingLabel = new LabelBuilder()
-        .setLabel('Pending retention (days)')
-        .setTextInputComponent(
-            new TextInputBuilder()
-                .setCustomId('pending_days')
-                .setStyle(TextInputStyle.Short)
-                .setValue(String(settings.pendingApplicationRetentionDays ?? 30))
-                .setMaxLength(4)
-                .setMinLength(1)
-                .setRequired(true),
-        );
-
-    const reviewedLabel = new LabelBuilder()
-        .setLabel('Reviewed retention (days)')
-        .setTextInputComponent(
-            new TextInputBuilder()
-                .setCustomId('reviewed_days')
-                .setStyle(TextInputStyle.Short)
-                .setValue(String(settings.reviewedApplicationRetentionDays ?? 14))
-                .setMaxLength(4)
-                .setMinLength(1)
-                .setRequired(true),
-        );
-
-    modal
-        .addTextDisplayComponents(retentionInfo)
-        .addLabelComponents(pendingLabel, reviewedLabel);
-
-    await selectInteraction.showModal(modal);
-
-    const submitted = await selectInteraction
-        .awaitModalSubmit({
-            filter: i =>
-                i.customId === 'app_cfg_retention' && i.user.id === selectInteraction.user.id,
-            time: 120_000,
-        })
-        .catch(() => null);
-
-    if (!submitted) return;
-
-    const pendingDays = parseInt(submitted.fields.getTextInputValue('pending_days').trim(), 10);
-    const reviewedDays = parseInt(submitted.fields.getTextInputValue('reviewed_days').trim(), 10);
-
-    if (isNaN(pendingDays) || pendingDays < 1 || pendingDays > 3650) {
-        await submitted.reply({
-            embeds: [errorEmbed('Invalid Value', 'Pending retention must be a whole number between **1** and **3650** days.')],
-            flags: MessageFlags.Ephemeral,
-        });
-        return;
-    }
-
-    if (isNaN(reviewedDays) || reviewedDays < 1 || reviewedDays > 3650) {
-        await submitted.reply({
-            embeds: [errorEmbed('Invalid Value', 'Reviewed retention must be a whole number between **1** and **3650** days.')],
-            flags: MessageFlags.Ephemeral,
-        });
-        return;
-    }
-
-    settings.pendingApplicationRetentionDays = pendingDays;
-    settings.reviewedApplicationRetentionDays = reviewedDays;
-    await saveApplicationSettings(client, guildId, settings);
-
-    await submitted.reply({
-        embeds: [
-            successEmbed(
-                '✅ Retention Updated',
-                `Pending applications will be kept for **${pendingDays} days**.\nReviewed applications will be kept for **${reviewedDays} days**.`,
-            ),
-        ],
-        flags: MessageFlags.Ephemeral,
-    });
-
-    await refreshDashboard(rootInteraction, settings, roles, guildId);
-}
-
-// ─── Delete Application ───────────────────────────────────────────────────────
-
-async function handleDeleteApplication(confirmSubmit, selectedRoleId, guildId, roles, client) {
-    try {
-        // Find the application in the roles array
-        const roleIndex = roles.findIndex(r => r.roleId === selectedRoleId);
-        if (roleIndex === -1) {
-            await confirmSubmit.reply({
-                embeds: [errorEmbed('Not Found', 'Application role not found.')],
-                flags: MessageFlags.Ephemeral,
-            });
-            return;
-        }
-
-        const deletedRole = roles[roleIndex];
-
-        // Remove from roles array
-        roles.splice(roleIndex, 1);
-
-        // Save updated roles list
-        await saveApplicationRoles(client, guildId, roles);
-
-        // Delete per-application settings
-        await deleteApplicationRoleSettings(client, guildId, selectedRoleId);
-
-        // Get all applications for this guild and find ones with this roleId
-        const allApplications = await getApplications(client, guildId);
-        const applicationsToDelete = allApplications.filter(app => app.roleId === selectedRoleId);
-
-        // Delete each application
-        for (const app of applicationsToDelete) {
-            await deleteApplication(client, guildId, app.id, app.userId);
-        }
-
-        // Send success message
-        await confirmSubmit.reply({
-            embeds: [
-                successEmbed(
-                    '🗑️ Application Deleted',
-                    `The application for <@&${selectedRoleId}> (**${deletedRole.name}**) has been permanently deleted.\n\n` +
-                    `Deleted: **${applicationsToDelete.length}** application${applicationsToDelete.length !== 1 ? 's' : ''}`,
-                ),
-            ],
-            flags: MessageFlags.Ephemeral,
-        });
-
-    } catch (error) {
-        logger.error('Error in handleDeleteApplication:', error);
-        await confirmSubmit.reply({
-            embeds: [errorEmbed('Error', 'An error occurred while deleting the application. Please try again.')],
-            flags: MessageFlags.Ephemeral,
-        });
-    }
-}
+        const channel = selectInteraction.guild.channels.cache
